@@ -258,6 +258,7 @@
             button4.TabIndex = 3;
             button4.Text = "Sacuvaj izmene i idi na sledeci";
             button4.UseVisualStyleBackColor = false;
+            button4.Click += btnSacuvaj_Click;
             // 
             // button2
             // 
@@ -270,7 +271,7 @@
             button2.TabIndex = 1;
             button2.Text = "Idi na sledeci";
             button2.UseVisualStyleBackColor = false;
-            button2.Click += button2_Click;
+            button2.Click += btnSledeci_Click;
             // 
             // button1
             // 
@@ -283,7 +284,7 @@
             button1.TabIndex = 0;
             button1.Text = "Predhodni";
             button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
+            button1.Click += btnPrethodni_Click;
             // 
             // button3
             // 
@@ -306,7 +307,7 @@
             label12.Name = "label12";
             label12.Size = new Size(155, 25);
             label12.TabIndex = 26;
-            label12.Text = "Polje 9";
+            label12.Text = "Datum od";
             label12.Click += label12_Click;
             // 
             // label13
@@ -318,7 +319,7 @@
             label13.Name = "label13";
             label13.Size = new Size(155, 25);
             label13.TabIndex = 27;
-            label13.Text = "Polje 10";
+            label13.Text = "Datum do";
             // 
             // dateTimePicker1
             // 

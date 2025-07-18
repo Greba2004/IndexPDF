@@ -13,18 +13,65 @@
 
         string inputFolderPath = "";
         string outputFolderPath = "";
+        string configExcelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xlsx");
 
-        string configExcelPath = "putanja/do/config.xlsx";
         public Form1(string inputFolder, string outputFolder)
         {
             InitializeComponent();
             this.inputFolderPath = inputFolder;
             this.outputFolderPath = outputFolder;
+            try
+            {
+                configData = ExcelConfigLoader.UcitajKonfiguracijuIzExcel(configExcelPath);
+
+
+                PostaviNazivePoljaUI();
+
+               
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Greška pri učitavanju Excel fajla: " + ex.Message);
+            }
+
             UcitajPdfFajlove();
             if (pdfFajlovi.Count > 0)
             {
                 trenutniIndex = 0;
                 PrikaziTrenutniFajl();
+            }
+        }
+        //VALIDACIJA OBAVEZNIH POLJA
+        private bool ValidirajObaveznaPolja()
+        {
+            // Polja su u comboBox-evima ili tekstualnim poljima, zavisno od UI, na primer comboBox1..comboBox8
+            ComboBox[] comboBoxes = { comboBox1, comboBox2, comboBox3, comboBox4, comboBox5, comboBox6, comboBox7, comboBox8 };
+
+            for (int i = 0; i < comboBoxes.Length; i++)
+            {
+                if (configData.PoljaObavezna[i])
+                {
+                    if (string.IsNullOrWhiteSpace(comboBoxes[i].Text))
+                    {
+                        MessageBox.Show($"Polje '{configData.PoljaNazivi[i]}' je obavezno i ne može biti prazno!");
+                        comboBoxes[i].Focus();
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        //POSTAVLJANJE POLJA
+        private void PostaviNazivePoljaUI()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                string labelName = "label" + (i + 4); // od label4 do label11
+                var label = this.Controls.Find(labelName, true).FirstOrDefault() as Label;
+                if (label != null)
+                {
+                    label.Text = configData.PoljaNazivi[i];
+                }
             }
         }
         //UCITAVANJE PDF FAJLOVA
@@ -42,6 +89,25 @@
             if (pdfFajlovi.Count == 0)
             {
                 MessageBox.Show("Nema PDF fajlova u izabranom folderu.");
+            }
+        }
+        //Metoda za cuvanje podataka
+        private void SacuvajPodatke()
+        {
+           
+            MessageBox.Show("Izmene su sačuvane.");
+        }
+        //Metoda za prelazak na sledeci fajl
+        private void PredjiNaSledeciFajl()
+        {
+            if (trenutniIndex < pdfFajlovi.Count - 1)
+            {
+                trenutniIndex++;
+                PrikaziTrenutniFajl();
+            }
+            else
+            {
+                MessageBox.Show("Nema više fajlova.");
             }
         }
         //PRIKAZIVANJE PODATAKA NA FORMU
@@ -82,6 +148,35 @@
             splitContainer1.Panel2.Controls.Clear();
             splitContainer1.Panel2.Controls.Add(pdfViewer);
         }
+        // POMOCNA METODA ZA PREMESTANJE FAJLA
+        private void OslobodiPdfViewer()
+        {
+            if (pdfViewer != null)
+            {
+                if (pdfViewer.Document != null)
+                {
+                    pdfViewer.Document.Dispose();
+                    pdfViewer.Document = null;
+                }
+                pdfViewer.Dispose();
+                pdfViewer = null;
+            }
+        }
+        //PREMESTANJE FAJLA KOJI JE OBRADJEN U FOLDER
+        private void PremestiTrenutniPdfUFolder()
+        {
+            if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count)
+                return;
+
+            OslobodiPdfViewer();
+
+            var trenutniPdf = pdfFajlovi[trenutniIndex];
+            string nazivFajla = Path.GetFileName(trenutniPdf.OriginalPath);
+            string novaPutanja = Path.Combine(outputFolderPath, nazivFajla);
+
+            // Premesti fajl
+            File.Move(trenutniPdf.OriginalPath, novaPutanja);
+        }
         //Dugme za sledeci
         private void btnSledeci_Click(object sender, EventArgs e)
         {
@@ -99,6 +194,16 @@
                 trenutniIndex = 0;
 
             PrikaziTrenutniFajl();
+        }
+        //Dugme za cuvanje izmena
+        private void btnSacuvaj_Click(object sender, EventArgs e)
+        {
+            // Proveri da li su obavezna polja popunjena
+            if (!ValidirajObaveznaPolja())
+                return;
+
+            PremestiTrenutniPdfUFolder();
+            PredjiNaSledeciFajl();
         }
 
         public Form1()
