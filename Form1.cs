@@ -2,6 +2,8 @@
 {
     using PdfiumViewer;
     using IndexPDF2.Modeli;
+    using System.IO;
+    using System.Linq;
     public partial class Form1 : Form
     {
         //GLOBALNE VARIJABLE
@@ -13,33 +15,34 @@
         string outputFolderPath = "";
 
         string configExcelPath = "putanja/do/config.xlsx";
-        // IZBOR INPUT I OUTPUT FOLDERA
-        private void Form1_Load(object sender, EventArgs e)
+        public Form1(string inputFolder, string outputFolder)
         {
-            using (var folderDialog = new FolderBrowserDialog())
-            {
-                MessageBox.Show("Izaberi INPUT folder");
-                if (folderDialog.ShowDialog() == DialogResult.OK)
-                    inputFolderPath = folderDialog.SelectedPath;
-                else Close(); // prekini ako ne izabere
-            }
-
-            using (var folderDialog = new FolderBrowserDialog())
-            {
-                MessageBox.Show("Izaberi OUTPUT folder");
-                if (folderDialog.ShowDialog() == DialogResult.OK)
-                    outputFolderPath = folderDialog.SelectedPath;
-                else Close();
-            }
-
+            InitializeComponent();
+            this.inputFolderPath = inputFolder;
+            this.outputFolderPath = outputFolder;
             UcitajPdfFajlove();
-            PrikaziTrenutniFajl();
+            if (pdfFajlovi.Count > 0)
+            {
+                trenutniIndex = 0;
+                PrikaziTrenutniFajl();
+            }
         }
         //UCITAVANJE PDF FAJLOVA
         private void UcitajPdfFajlove()
         {
+            if (string.IsNullOrEmpty(inputFolderPath) || !Directory.Exists(inputFolderPath))
+            {
+                MessageBox.Show("Ulazni folder nije validan!");
+                return;
+            }
+
             var fajlovi = Directory.GetFiles(inputFolderPath, "*.pdf");
             pdfFajlovi = fajlovi.Select(f => new InputPdfFile(f)).ToList();
+
+            if (pdfFajlovi.Count == 0)
+            {
+                MessageBox.Show("Nema PDF fajlova u izabranom folderu.");
+            }
         }
         //PRIKAZIVANJE PODATAKA NA FORMU
         private void PrikaziTrenutniFajl()
