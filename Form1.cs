@@ -4,6 +4,8 @@
     using IndexPDF2.Modeli;
     using System.IO;
     using System.Linq;
+    using ClosedXML.Excel;
+
     public partial class Form1 : Form
     {
         //GLOBALNE VARIJABLE
@@ -27,7 +29,7 @@
 
                 PostaviNazivePoljaUI();
 
-               
+
             }
             catch (Exception ex)
             {
@@ -37,6 +39,7 @@
             UcitajPdfFajlove();
             if (pdfFajlovi.Count > 0)
             {
+
                 trenutniIndex = 0;
                 PrikaziTrenutniFajl();
             }
@@ -61,16 +64,48 @@
             }
             return true;
         }
+        //Validacija datuma
+        private bool ValidirajDatume()
+        {
+            string datumOdText = textBoxDatumOd.Text.Trim();
+            string datumDoText = textBoxDatumDo.Text.Trim();
+
+            if (!DateTime.TryParseExact(datumOdText, "dd.MM.yyyy.", null, System.Globalization.DateTimeStyles.None, out DateTime datumOd))
+            {
+                MessageBox.Show("Datum OD nije validan. Koristite format: dd.MM.yyyy.");
+                return false;
+            }
+
+            if (!DateTime.TryParseExact(datumDoText, "dd.MM.yyyy.", null, System.Globalization.DateTimeStyles.None, out DateTime datumDo))
+            {
+                MessageBox.Show("Datum DO nije validan. Koristite format: dd.MM.yyyy.");
+                return false;
+            }
+
+            return true;
+        }
         //POSTAVLJANJE POLJA
         private void PostaviNazivePoljaUI()
         {
             for (int i = 0; i < 8; i++)
             {
-                string labelName = "label" + (i + 4); // od label4 do label11
+                // Postavi labelu (label4 do label11)
+                string labelName = "label" + (i + 4);
                 var label = this.Controls.Find(labelName, true).FirstOrDefault() as Label;
                 if (label != null)
                 {
                     label.Text = configData.PoljaNazivi[i];
+                }
+
+                // Postavi AutoComplete za odgovarajući ComboBox (comboBox1 do comboBox8)
+                string comboBoxName = "comboBox" + (i + 1);
+                var comboBox = this.Controls.Find(comboBoxName, true).FirstOrDefault() as ComboBox;
+                if (comboBox != null && configData.PoljaListe[i] != null)
+                {
+                    comboBox.AutoCompleteCustomSource.Clear();
+                    comboBox.AutoCompleteCustomSource.AddRange(configData.PoljaListe[i].ToArray());
+                    comboBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                    comboBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
                 }
             }
         }
@@ -94,7 +129,7 @@
         //Metoda za cuvanje podataka
         private void SacuvajPodatke()
         {
-           
+
             MessageBox.Show("Izmene su sačuvane.");
         }
         //Metoda za prelazak na sledeci fajl
@@ -132,7 +167,7 @@
             // Očisti i postavi ComboBox vrednosti (dodaćemo kasnije)
         }
         PdfViewer pdfViewer = new PdfViewer(); // globalno
-       //PDF PREGLED
+                                               //PDF PREGLED
         private void UcitajPdfUFajlViewer(string path)
         {
             if (pdfViewer != null)
@@ -162,6 +197,44 @@
                 pdfViewer = null;
             }
         }
+        //CUVANJE PODATAKA U TRENUTNI PDF
+        private void SacuvajUnetePodatkeUTrenutniPdf()
+        {
+            if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count)
+                return;
+
+            var pdf = pdfFajlovi[trenutniIndex];
+
+            // Pod pretpostavkom da su ComboBox-evi i TextBox-evi numerisani kao: comboBox1, ..., comboBox8 i textBoxDatumOd, textBoxDatumDo
+            for (int i = 0; i < 8; i++)
+            {
+                var controlName = "comboBox" + (i + 1);
+                var control = this.Controls.Find(controlName, true).FirstOrDefault() as ComboBox;
+                pdf.Polja[i] = control?.Text ?? "";
+            }
+
+            pdf.Polja[8] = textBoxDatumOd.Text;
+            pdf.Polja[9] = textBoxDatumDo.Text;
+        }
+        //METODA ZA CISCENJE POLJA
+        private void OcistiPolja()
+        {
+            // Očisti svih 8 ComboBox polja
+            comboBox1.Text = "";
+            comboBox2.Text = "";
+            comboBox3.Text = "";
+            comboBox4.Text = "";
+            comboBox5.Text = "";
+            comboBox6.Text = "";
+            comboBox7.Text = "";
+            comboBox8.Text = "";
+
+            // Očisti tekst iz TextBox-ova za datume
+            textBox1.Text = "";
+            textBox2.Text = "";
+            textBoxDatumOd.Text = "";
+            textBoxDatumDo.Text = "";
+        }
         //PREMESTANJE FAJLA KOJI JE OBRADJEN U FOLDER
         private void PremestiTrenutniPdfUFolder()
         {
@@ -177,6 +250,60 @@
             // Premesti fajl
             File.Move(trenutniPdf.OriginalPath, novaPutanja);
         }
+        //DODAVANJE Reda u izvestaj
+        private void GenerisiIzvestajExcel()
+        {
+            var workbookPath = Path.Combine(outputFolderPath, "izvestaj.xlsx");
+            var workbook = new XLWorkbook();
+            var worksheet = workbook.AddWorksheet("Izvestaj");
+
+            int red = 1;
+            int kolona = 1;
+
+            // ✅ Naslovi kolona
+            worksheet.Cell(red, kolona++).Value = "Stari naziv fajla";
+            worksheet.Cell(red, kolona++).Value = "Novi naziv fajla";
+
+            foreach (var naziv in configData.PoljaNazivi)
+                worksheet.Cell(red, kolona++).Value = naziv;
+
+            worksheet.Cell(red, kolona++).Value = "Datum Od";
+            worksheet.Cell(red, kolona).Value = "Datum Do";
+
+            red++;
+
+            // 🔁 Dodaj podatke za sve premeštene fajlove
+            foreach (var pdf in pdfFajlovi)
+            {
+                string fajlPutanja = Path.Combine(outputFolderPath, pdf.NewFileName);
+                if (!File.Exists(fajlPutanja))
+                    continue;
+
+                int kol = 1;
+                worksheet.Cell(red, kol++).Value = pdf.FileName;
+                worksheet.Cell(red, kol++).Value = pdf.NewFileName;
+
+                for (int i = 0; i < 8; i++)
+                    worksheet.Cell(red, kol++).Value = pdf.Polja[i] ?? "";
+
+                worksheet.Cell(red, kol++).Value = pdf.Polja[8] ?? "";
+                worksheet.Cell(red, kol).Value = pdf.Polja[9] ?? "";
+
+                red++;
+            }
+
+            workbook.SaveAs(workbookPath);
+
+            // ✅ Automatski otvori Excel
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = workbookPath,
+                UseShellExecute = true
+            });
+
+            MessageBox.Show("Izveštaj je uspešno generisan i otvoren.", "Uspeh", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         //Dugme za sledeci
         private void btnSledeci_Click(object sender, EventArgs e)
         {
@@ -185,6 +312,7 @@
                 trenutniIndex = pdfFajlovi.Count - 1;
 
             PrikaziTrenutniFajl();
+            OcistiPolja();
         }
         //Dugme za predhodni
         private void btnPrethodni_Click(object sender, EventArgs e)
@@ -194,6 +322,7 @@
                 trenutniIndex = 0;
 
             PrikaziTrenutniFajl();
+            OcistiPolja();
         }
         //Dugme za cuvanje izmena
         private void btnSacuvaj_Click(object sender, EventArgs e)
@@ -201,10 +330,20 @@
             // Proveri da li su obavezna polja popunjena
             if (!ValidirajObaveznaPolja())
                 return;
-
+            if (!ValidirajDatume())
+                return;
+            SacuvajUnetePodatkeUTrenutniPdf();
             PremestiTrenutniPdfUFolder();
             PredjiNaSledeciFajl();
+            OcistiPolja();
         }
+        //Dugme za izvestaj
+        private void btnIzvestaj_Click(object sender, EventArgs e)
+        {
+            GenerisiIzvestajExcel();
+            MessageBox.Show("Izveštaj je uspešno generisan!");
+        }
+
 
         public Form1()
         {
@@ -237,6 +376,11 @@
         }
 
         private void button2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btn_Izvestaj_Click(object sender, EventArgs e)
         {
 
         }

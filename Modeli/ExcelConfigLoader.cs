@@ -24,7 +24,24 @@ namespace IndexPDF2.Modeli
 
                 var obaveznoCell = worksheet.Cell(2, i).GetString().Trim().ToUpper();
                 config.PoljaObavezna[i - 1] = obaveznoCell == "DA";
-            }
+                List<string> vrednosti = new List<string>();
+                int red = 3;
+
+                while (true)
+                {
+                    var vrednost = worksheet.Cell(red, i).GetString().Trim();
+
+                    if (string.IsNullOrEmpty(vrednost))
+                        break;
+
+                    vrednosti.Add(vrednost);
+                    red++;
+                }
+
+                config.PoljaListe[i - 1] = vrednosti;
+            
+        }
+
 
             return config;
         }

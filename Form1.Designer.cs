@@ -43,11 +43,9 @@
             button4 = new Button();
             button2 = new Button();
             button1 = new Button();
-            button3 = new Button();
+            btn_Izvestaj = new Button();
             label12 = new Label();
             label13 = new Label();
-            dateTimePicker1 = new DateTimePicker();
-            dateTimePicker2 = new DateTimePicker();
             comboBox1 = new ComboBox();
             comboBox2 = new ComboBox();
             comboBox3 = new ComboBox();
@@ -60,6 +58,8 @@
             label1 = new Label();
             textBox1 = new TextBox();
             textBox2 = new TextBox();
+            textBoxDatumOd = new TextBox();
+            textBoxDatumDo = new TextBox();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.SuspendLayout();
@@ -98,11 +98,9 @@
             tableLayoutPanel1.Controls.Add(button4, 1, 14);
             tableLayoutPanel1.Controls.Add(button2, 1, 13);
             tableLayoutPanel1.Controls.Add(button1, 0, 13);
-            tableLayoutPanel1.Controls.Add(button3, 0, 14);
+            tableLayoutPanel1.Controls.Add(btn_Izvestaj, 0, 14);
             tableLayoutPanel1.Controls.Add(label12, 0, 11);
             tableLayoutPanel1.Controls.Add(label13, 0, 12);
-            tableLayoutPanel1.Controls.Add(dateTimePicker1, 1, 12);
-            tableLayoutPanel1.Controls.Add(dateTimePicker2, 1, 11);
             tableLayoutPanel1.Controls.Add(comboBox1, 1, 3);
             tableLayoutPanel1.Controls.Add(comboBox2, 1, 4);
             tableLayoutPanel1.Controls.Add(comboBox3, 1, 5);
@@ -115,6 +113,8 @@
             tableLayoutPanel1.Controls.Add(label1, 1, 1);
             tableLayoutPanel1.Controls.Add(textBox1, 1, 0);
             tableLayoutPanel1.Controls.Add(textBox2, 1, 2);
+            tableLayoutPanel1.Controls.Add(textBoxDatumOd, 1, 11);
+            tableLayoutPanel1.Controls.Add(textBoxDatumDo, 1, 12);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.MinimumSize = new Size(0, 50);
@@ -286,17 +286,18 @@
             button1.UseVisualStyleBackColor = false;
             button1.Click += btnPrethodni_Click;
             // 
-            // button3
+            // btn_Izvestaj
             // 
-            button3.BackColor = Color.MidnightBlue;
-            button3.Dock = DockStyle.Fill;
-            button3.ForeColor = SystemColors.Control;
-            button3.Location = new Point(3, 387);
-            button3.Name = "button3";
-            button3.Size = new Size(155, 60);
-            button3.TabIndex = 2;
-            button3.Text = "Izvestaj";
-            button3.UseVisualStyleBackColor = false;
+            btn_Izvestaj.BackColor = Color.MidnightBlue;
+            btn_Izvestaj.Dock = DockStyle.Fill;
+            btn_Izvestaj.ForeColor = SystemColors.Control;
+            btn_Izvestaj.Location = new Point(3, 387);
+            btn_Izvestaj.Name = "btn_Izvestaj";
+            btn_Izvestaj.Size = new Size(155, 60);
+            btn_Izvestaj.TabIndex = 2;
+            btn_Izvestaj.Text = "Izvestaj";
+            btn_Izvestaj.UseVisualStyleBackColor = false;
+            btn_Izvestaj.Click += btnIzvestaj_Click;
             // 
             // label12
             // 
@@ -321,26 +322,10 @@
             label13.TabIndex = 27;
             label13.Text = "Datum do";
             // 
-            // dateTimePicker1
-            // 
-            dateTimePicker1.Dock = DockStyle.Fill;
-            dateTimePicker1.Location = new Point(161, 300);
-            dateTimePicker1.Margin = new Padding(0);
-            dateTimePicker1.Name = "dateTimePicker1";
-            dateTimePicker1.Size = new Size(377, 23);
-            dateTimePicker1.TabIndex = 28;
-            // 
-            // dateTimePicker2
-            // 
-            dateTimePicker2.Dock = DockStyle.Fill;
-            dateTimePicker2.Location = new Point(161, 275);
-            dateTimePicker2.Margin = new Padding(0);
-            dateTimePicker2.Name = "dateTimePicker2";
-            dateTimePicker2.Size = new Size(377, 23);
-            dateTimePicker2.TabIndex = 29;
-            // 
             // comboBox1
             // 
+            comboBox1.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox1.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox1.Dock = DockStyle.Fill;
             comboBox1.FormattingEnabled = true;
             comboBox1.Location = new Point(161, 75);
@@ -351,7 +336,8 @@
             // 
             // comboBox2
             // 
-            comboBox2.AutoCompleteMode = AutoCompleteMode.Suggest;
+            comboBox2.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox2.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox2.Dock = DockStyle.Fill;
             comboBox2.FormattingEnabled = true;
             comboBox2.Location = new Point(161, 100);
@@ -362,7 +348,8 @@
             // 
             // comboBox3
             // 
-            comboBox3.AutoCompleteMode = AutoCompleteMode.Suggest;
+            comboBox3.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox3.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox3.Dock = DockStyle.Fill;
             comboBox3.FormattingEnabled = true;
             comboBox3.Location = new Point(161, 125);
@@ -373,7 +360,8 @@
             // 
             // comboBox4
             // 
-            comboBox4.AutoCompleteMode = AutoCompleteMode.Suggest;
+            comboBox4.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox4.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox4.Dock = DockStyle.Fill;
             comboBox4.FormattingEnabled = true;
             comboBox4.Location = new Point(161, 150);
@@ -384,7 +372,8 @@
             // 
             // comboBox5
             // 
-            comboBox5.AutoCompleteMode = AutoCompleteMode.Suggest;
+            comboBox5.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox5.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox5.Dock = DockStyle.Fill;
             comboBox5.FormattingEnabled = true;
             comboBox5.Location = new Point(161, 175);
@@ -395,7 +384,8 @@
             // 
             // comboBox6
             // 
-            comboBox6.AutoCompleteMode = AutoCompleteMode.Suggest;
+            comboBox6.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox6.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox6.Dock = DockStyle.Fill;
             comboBox6.FormattingEnabled = true;
             comboBox6.Location = new Point(161, 200);
@@ -406,7 +396,8 @@
             // 
             // comboBox7
             // 
-            comboBox7.AutoCompleteMode = AutoCompleteMode.Suggest;
+            comboBox7.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox7.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox7.Dock = DockStyle.Fill;
             comboBox7.FormattingEnabled = true;
             comboBox7.Location = new Point(161, 225);
@@ -417,7 +408,8 @@
             // 
             // comboBox8
             // 
-            comboBox8.AutoCompleteMode = AutoCompleteMode.Suggest;
+            comboBox8.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox8.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox8.Dock = DockStyle.Fill;
             comboBox8.FormattingEnabled = true;
             comboBox8.Location = new Point(161, 250);
@@ -464,6 +456,24 @@
             textBox2.Size = new Size(377, 23);
             textBox2.TabIndex = 40;
             // 
+            // textBoxDatumOd
+            // 
+            textBoxDatumOd.Dock = DockStyle.Fill;
+            textBoxDatumOd.Location = new Point(164, 278);
+            textBoxDatumOd.Name = "textBoxDatumOd";
+            textBoxDatumOd.PlaceholderText = "dd.MM.yyyy.";
+            textBoxDatumOd.Size = new Size(371, 23);
+            textBoxDatumOd.TabIndex = 41;
+            // 
+            // textBoxDatumDo
+            // 
+            textBoxDatumDo.Dock = DockStyle.Fill;
+            textBoxDatumDo.Location = new Point(164, 303);
+            textBoxDatumDo.Name = "textBoxDatumDo";
+            textBoxDatumDo.PlaceholderText = "dd.MM.yyyy.";
+            textBoxDatumDo.Size = new Size(371, 23);
+            textBoxDatumDo.TabIndex = 42;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -486,7 +496,7 @@
         private TableLayoutPanel tableLayoutPanel1;
         private Button button1;
         private Button button2;
-        private Button button3;
+        private Button btn_Izvestaj;
         private Button button4;
         private Label label11;
         private Label label10;
@@ -501,8 +511,6 @@
         private Label label1;
         private Label label12;
         private Label label13;
-        private DateTimePicker dateTimePicker1;
-        private DateTimePicker dateTimePicker2;
         private ComboBox comboBox1;
         private ComboBox comboBox2;
         private ComboBox comboBox3;
@@ -514,5 +522,7 @@
         private CheckBox chkMenjasNaziv;
         private TextBox textBox1;
         private TextBox textBox2;
+        private TextBox textBoxDatumOd;
+        private TextBox textBoxDatumDo;
     }
 }
