@@ -153,18 +153,61 @@
 
             var fajl = pdfFajlovi[trenutniIndex];
 
-            // naziv fajla
+            // Gornja labela - naziv učitanog fajla
             lblNazivPdfFajla.Text = fajl.FileName;
 
-            if (!chkMenjasNaziv.Checked)
-                txtNoviNazivFajla.Text = fajl.NewFileName;
-            else
-                txtNoviNazivFajla.Text = fajl.FileName;
-
-            // učitaj PDF u desni panel
+            // Checkbox i TextBox
+            chkMenjasNaziv.Checked = false;        // Checkbox isključimo na početku
+            textBox2.Enabled = false;
+            textBox2.Text = fajl.FileName;
+            // Učitaj PDF fajl
             UcitajPdfUFajlViewer(fajl.OriginalPath);
+        }
+        // MENJANJE NAZIVA PDF 
+        private void chkMenjasNaziv_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkMenjasNaziv.Checked)
+            {
+                textBox2.Enabled = true;
+                textBox2.Text = "";   // kad se čekira, brišemo TextBox da korisnik unese
+                textBox2.Focus();
+            }
+            else
+            {
+                var fajl = pdfFajlovi[trenutniIndex];  // uzmi trenutno učitan fajl
+                textBox2.Enabled = false;
+                textBox2.Text = fajl.FileName;
+            }
+        }
+        //CUVANJE PODATAKA U TRENUTNI PDF
+        private void SacuvajUnetePodatkeUTrenutniPdf()
+        {
+            if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count)
+                return;
 
-            // Očisti i postavi ComboBox vrednosti (dodaćemo kasnije)
+            var pdf = pdfFajlovi[trenutniIndex];
+
+            // Sačuvaj ostale podatke (comboBox-eve i datume)
+            for (int i = 0; i < 8; i++)
+            {
+                var controlName = "comboBox" + (i + 1);
+                var control = this.Controls.Find(controlName, true).FirstOrDefault() as ComboBox;
+                pdf.Polja[i] = control?.Text ?? "";
+            }
+
+            pdf.Polja[8] = textBoxDatumOd.Text;
+            pdf.Polja[9] = textBoxDatumDo.Text;
+
+            // Ako je čekiran checkbox i unet novi naziv - sačuvaj ga kao novi naziv
+            if (chkMenjasNaziv.Checked && !string.IsNullOrWhiteSpace(txtNoviNazivFajla.Text))
+            {
+                pdf.NewFileName = textBox2.Text.Trim();
+            }
+            else
+            {
+                // Ako checkbox nije čekiran, koristi originalni naziv fajla
+                pdf.NewFileName = pdf.FileName;
+            }
         }
         PdfViewer pdfViewer = new PdfViewer(); // globalno
                                                //PDF PREGLED
@@ -197,25 +240,7 @@
                 pdfViewer = null;
             }
         }
-        //CUVANJE PODATAKA U TRENUTNI PDF
-        private void SacuvajUnetePodatkeUTrenutniPdf()
-        {
-            if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count)
-                return;
-
-            var pdf = pdfFajlovi[trenutniIndex];
-
-            // Pod pretpostavkom da su ComboBox-evi i TextBox-evi numerisani kao: comboBox1, ..., comboBox8 i textBoxDatumOd, textBoxDatumDo
-            for (int i = 0; i < 8; i++)
-            {
-                var controlName = "comboBox" + (i + 1);
-                var control = this.Controls.Find(controlName, true).FirstOrDefault() as ComboBox;
-                pdf.Polja[i] = control?.Text ?? "";
-            }
-
-            pdf.Polja[8] = textBoxDatumOd.Text;
-            pdf.Polja[9] = textBoxDatumDo.Text;
-        }
+       
         //METODA ZA CISCENJE POLJA
         private void OcistiPolja()
         {
@@ -230,12 +255,10 @@
             comboBox8.Text = "";
 
             // Očisti tekst iz TextBox-ova za datume
-            textBox1.Text = "";
-            textBox2.Text = "";
             textBoxDatumOd.Text = "";
             textBoxDatumDo.Text = "";
         }
-        //PREMESTANJE FAJLA KOJI JE OBRADJEN U FOLDER
+        // PREMESTANJE FAJLA KOJI JE OBRADJEN U FOLDER
         private void PremestiTrenutniPdfUFolder()
         {
             if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count)
@@ -244,11 +267,28 @@
             OslobodiPdfViewer();
 
             var trenutniPdf = pdfFajlovi[trenutniIndex];
-            string nazivFajla = Path.GetFileName(trenutniPdf.OriginalPath);
+
+            // Ako je unet novi naziv fajla, koristi njega, inače koristi originalni naziv
+            string nazivFajla = string.IsNullOrWhiteSpace(trenutniPdf.NewFileName)
+                ? Path.GetFileName(trenutniPdf.OriginalPath)
+                : trenutniPdf.NewFileName;
+
+            // Dodaj .pdf ako nedostaje
+            if (!nazivFajla.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                nazivFajla += ".pdf";
+            }
+
+            // Formiraj novu putanju
             string novaPutanja = Path.Combine(outputFolderPath, nazivFajla);
 
-            // Premesti fajl
-            File.Move(trenutniPdf.OriginalPath, novaPutanja);
+            if (File.Exists(trenutniPdf.OriginalPath))
+            {
+                File.Move(trenutniPdf.OriginalPath, novaPutanja);
+
+                // Ažuriraj OriginalPath u objektu da pokazuje na novu lokaciju
+                trenutniPdf.OriginalPath = novaPutanja;
+            }
         }
         //DODAVANJE Reda u izvestaj
         private void GenerisiIzvestajExcel()
@@ -275,13 +315,17 @@
             // 🔁 Dodaj podatke za sve premeštene fajlove
             foreach (var pdf in pdfFajlovi)
             {
-                string fajlPutanja = Path.Combine(outputFolderPath, pdf.NewFileName);
+                // Odredi novi naziv fajla (ako postoji)
+                string noviNaziv = string.IsNullOrWhiteSpace(pdf.NewFileName) ? pdf.FileName : pdf.NewFileName;
+
+                string fajlPutanja = Path.Combine(outputFolderPath, noviNaziv);
                 if (!File.Exists(fajlPutanja))
                     continue;
 
                 int kol = 1;
-                worksheet.Cell(red, kol++).Value = pdf.FileName;
-                worksheet.Cell(red, kol++).Value = pdf.NewFileName;
+
+                worksheet.Cell(red, kol++).Value = pdf.FileName;   // Stari naziv
+                worksheet.Cell(red, kol++).Value = noviNaziv;       // Novi naziv
 
                 for (int i = 0; i < 8; i++)
                     worksheet.Cell(red, kol++).Value = pdf.Polja[i] ?? "";
@@ -294,7 +338,7 @@
 
             workbook.SaveAs(workbookPath);
 
-            // ✅ Automatski otvori Excel
+            // ✅ Otvori Excel fajl
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = workbookPath,

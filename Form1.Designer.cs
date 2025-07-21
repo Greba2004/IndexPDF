@@ -56,7 +56,6 @@
             comboBox8 = new ComboBox();
             chkMenjasNaziv = new CheckBox();
             label1 = new Label();
-            textBox1 = new TextBox();
             textBox2 = new TextBox();
             textBoxDatumOd = new TextBox();
             textBoxDatumDo = new TextBox();
@@ -111,7 +110,6 @@
             tableLayoutPanel1.Controls.Add(comboBox8, 1, 10);
             tableLayoutPanel1.Controls.Add(chkMenjasNaziv, 0, 1);
             tableLayoutPanel1.Controls.Add(label1, 1, 1);
-            tableLayoutPanel1.Controls.Add(textBox1, 1, 0);
             tableLayoutPanel1.Controls.Add(textBox2, 1, 2);
             tableLayoutPanel1.Controls.Add(textBoxDatumOd, 1, 11);
             tableLayoutPanel1.Controls.Add(textBoxDatumDo, 1, 12);
@@ -428,6 +426,7 @@
             chkMenjasNaziv.TabIndex = 38;
             chkMenjasNaziv.Text = "Menjas naziv fajla ?";
             chkMenjasNaziv.UseVisualStyleBackColor = true;
+            chkMenjasNaziv.CheckedChanged += chkMenjasNaziv_CheckedChanged;
             // 
             // label1
             // 
@@ -437,15 +436,6 @@
             label1.Size = new Size(0, 15);
             label1.TabIndex = 4;
             label1.Click += label1_Click;
-            // 
-            // textBox1
-            // 
-            textBox1.Dock = DockStyle.Fill;
-            textBox1.Location = new Point(161, 0);
-            textBox1.Margin = new Padding(0);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(377, 23);
-            textBox1.TabIndex = 39;
             // 
             // textBox2
             // 
