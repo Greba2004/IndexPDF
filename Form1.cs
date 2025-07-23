@@ -15,13 +15,15 @@
 
         string inputFolderPath = "";
         string outputFolderPath = "";
+        string operatorName = "";
         string configExcelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xlsx");
 
-        public Form1(string inputFolder, string outputFolder)
+        public Form1(string inputFolder, string outputFolder, string operatorName)
         {
             InitializeComponent();
             this.inputFolderPath = inputFolder;
             this.outputFolderPath = outputFolder;
+            this.operatorName = operatorName;
             try
             {
                 configData = ExcelConfigLoader.UcitajKonfiguracijuIzExcel(configExcelPath);
@@ -308,9 +310,12 @@
                 worksheet.Cell(red, kolona++).Value = naziv;
 
             worksheet.Cell(red, kolona++).Value = "Datum Od";
-            worksheet.Cell(red, kolona).Value = "Datum Do";
+            worksheet.Cell(red, kolona++).Value = "Datum Do";
+            worksheet.Cell(red, kolona++).Value = "Datum obrade";
+            worksheet.Cell(red, kolona).Value = "Ime operatera";
 
             red++;
+            
 
             // 🔁 Dodaj podatke za sve premeštene fajlove
             foreach (var pdf in pdfFajlovi)
@@ -319,8 +324,7 @@
                 string noviNaziv = string.IsNullOrWhiteSpace(pdf.NewFileName) ? pdf.FileName : pdf.NewFileName;
 
                 string fajlPutanja = Path.Combine(outputFolderPath, noviNaziv);
-                if (!File.Exists(fajlPutanja))
-                    continue;
+               
 
                 int kol = 1;
 
@@ -331,7 +335,9 @@
                     worksheet.Cell(red, kol++).Value = pdf.Polja[i] ?? "";
 
                 worksheet.Cell(red, kol++).Value = pdf.Polja[8] ?? "";
-                worksheet.Cell(red, kol).Value = pdf.Polja[9] ?? "";
+                worksheet.Cell(red, kol++).Value = pdf.Polja[9] ?? "";
+                worksheet.Cell(red, kol++).Value = pdf.DatumObrade.ToString("dd.MM.yyyy. HH:mm:ss");
+                worksheet.Cell(red, kol).Value = operatorName; // koristim promenljivu iz Form1
 
                 red++;
             }
@@ -377,6 +383,10 @@
             if (!ValidirajDatume())
                 return;
             SacuvajUnetePodatkeUTrenutniPdf();
+            if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
+            {
+                pdfFajlovi[trenutniIndex].DatumObrade = DateTime.Now;
+            }
             PremestiTrenutniPdfUFolder();
             PredjiNaSledeciFajl();
             OcistiPolja();
@@ -385,7 +395,7 @@
         private void btnIzvestaj_Click(object sender, EventArgs e)
         {
             GenerisiIzvestajExcel();
-            MessageBox.Show("Izveštaj je uspešno generisan!");
+           
         }
 
 

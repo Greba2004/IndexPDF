@@ -36,11 +36,14 @@
             label1 = new Label();
             label2 = new Label();
             label3 = new Label();
+            textBoxOperater = new TextBox();
+            label4 = new Label();
             SuspendLayout();
             // 
             // TextBoxInput
             // 
-            TextBoxInput.Location = new Point(12, 101);
+            TextBoxInput.Font = new Font("Segoe UI", 15F);
+            TextBoxInput.Location = new Point(10, 71);
             TextBoxInput.Multiline = true;
             TextBoxInput.Name = "TextBoxInput";
             TextBoxInput.Size = new Size(498, 82);
@@ -48,7 +51,8 @@
             // 
             // textBoxOutput
             // 
-            textBoxOutput.Location = new Point(10, 236);
+            textBoxOutput.Font = new Font("Segoe UI", 15F);
+            textBoxOutput.Location = new Point(10, 179);
             textBoxOutput.Multiline = true;
             textBoxOutput.Name = "textBoxOutput";
             textBoxOutput.Size = new Size(498, 82);
@@ -59,7 +63,7 @@
             btnInputBrowse.BackColor = Color.MidnightBlue;
             btnInputBrowse.Font = new Font("Segoe UI", 12F);
             btnInputBrowse.ForeColor = SystemColors.Control;
-            btnInputBrowse.Location = new Point(516, 101);
+            btnInputBrowse.Location = new Point(514, 71);
             btnInputBrowse.Name = "btnInputBrowse";
             btnInputBrowse.Size = new Size(224, 82);
             btnInputBrowse.TabIndex = 2;
@@ -72,7 +76,7 @@
             btnOutputBrowse.BackColor = Color.MidnightBlue;
             btnOutputBrowse.Font = new Font("Segoe UI", 12F);
             btnOutputBrowse.ForeColor = SystemColors.Control;
-            btnOutputBrowse.Location = new Point(516, 236);
+            btnOutputBrowse.Location = new Point(514, 179);
             btnOutputBrowse.Name = "btnOutputBrowse";
             btnOutputBrowse.Size = new Size(224, 82);
             btnOutputBrowse.TabIndex = 3;
@@ -99,7 +103,7 @@
             label1.BackColor = Color.MidnightBlue;
             label1.Font = new Font("Segoe UI", 11F);
             label1.ForeColor = SystemColors.Control;
-            label1.Location = new Point(12, 70);
+            label1.Location = new Point(10, 48);
             label1.Name = "label1";
             label1.Size = new Size(107, 20);
             label1.TabIndex = 5;
@@ -111,7 +115,7 @@
             label2.BackColor = Color.MidnightBlue;
             label2.Font = new Font("Segoe UI", 11F);
             label2.ForeColor = SystemColors.Control;
-            label2.Location = new Point(12, 205);
+            label2.Location = new Point(10, 156);
             label2.Name = "label2";
             label2.Size = new Size(121, 20);
             label2.TabIndex = 6;
@@ -129,11 +133,35 @@
             label3.TabIndex = 7;
             label3.Text = "UNESITE VASE INPUT I OUTPUT FOLDERE";
             // 
+            // textBoxOperater
+            // 
+            textBoxOperater.Font = new Font("Segoe UI", 15F);
+            textBoxOperater.Location = new Point(10, 288);
+            textBoxOperater.Multiline = true;
+            textBoxOperater.Name = "textBoxOperater";
+            textBoxOperater.Size = new Size(498, 48);
+            textBoxOperater.TabIndex = 8;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.BackColor = Color.MidnightBlue;
+            label4.Font = new Font("Segoe UI", 11F);
+            label4.ForeColor = SystemColors.Control;
+            label4.Location = new Point(12, 264);
+            label4.Name = "label4";
+            label4.Size = new Size(118, 20);
+            label4.TabIndex = 9;
+            label4.Text = "IME OPERATERA";
+            label4.Click += label4_Click;
+            // 
             // StartForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(label4);
+            Controls.Add(textBoxOperater);
             Controls.Add(label3);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -162,5 +190,7 @@
         private Button btnDalje;
         private Button btnInputBrowse;
         private Button btnOutputBrowse;
+        private TextBox textBoxOperater;
+        private Label label4;
     }
 }

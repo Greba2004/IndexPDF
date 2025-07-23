@@ -42,9 +42,15 @@ namespace IndexPDF2
                 return;
             }
 
-            Form1 mainForm = new Form1(inputPath, outputPath);
+            Form1 mainForm = new Form1(inputPath, outputPath, ImeOperatera);
             mainForm.Show();
             this.Hide(); // sakrij start formu
+        }
+        public string ImeOperatera => textBoxOperater.Text;
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

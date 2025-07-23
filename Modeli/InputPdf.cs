@@ -9,6 +9,8 @@ namespace IndexPDF2.Modeli
         public string NewFileName { get; set; }
 
         public string[] Polja { get; set; } = new string[10];
+        public DateTime DatumObrade { get; set; } = DateTime.MinValue;
+
 
         public InputPdfFile(string path)
         {
