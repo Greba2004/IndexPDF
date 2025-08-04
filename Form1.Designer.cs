@@ -75,9 +75,10 @@
             // 
             splitContainer1.Panel1.Controls.Add(tableLayoutPanel1);
             splitContainer1.Panel1.Paint += splitContainer1_Panel1_Paint;
-            splitContainer1.Size = new Size(800, 450);
-            splitContainer1.SplitterDistance = 538;
+            splitContainer1.Size = new Size(1096, 706);
+            splitContainer1.SplitterDistance = 628;
             splitContainer1.TabIndex = 0;
+            splitContainer1.SplitterMoved += splitContainer1_SplitterMoved;
             // 
             // tableLayoutPanel1
             // 
@@ -133,7 +134,7 @@
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 5.67226839F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 13.13025F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 13.13025F));
-            tableLayoutPanel1.Size = new Size(538, 450);
+            tableLayoutPanel1.Size = new Size(628, 706);
             tableLayoutPanel1.TabIndex = 0;
             tableLayoutPanel1.Paint += tableLayoutPanel1_Paint;
             // 
@@ -141,9 +142,10 @@
             // 
             lblNazivPdfFajla.AutoSize = true;
             lblNazivPdfFajla.Dock = DockStyle.Fill;
+            lblNazivPdfFajla.Font = new Font("Segoe UI", 15F);
             lblNazivPdfFajla.Location = new Point(3, 0);
             lblNazivPdfFajla.Name = "lblNazivPdfFajla";
-            lblNazivPdfFajla.Size = new Size(155, 25);
+            lblNazivPdfFajla.Size = new Size(182, 40);
             lblNazivPdfFajla.TabIndex = 5;
             lblNazivPdfFajla.Text = "Naziv PDF fajla";
             // 
@@ -151,9 +153,10 @@
             // 
             txtNoviNazivFajla.AutoSize = true;
             txtNoviNazivFajla.Dock = DockStyle.Fill;
-            txtNoviNazivFajla.Location = new Point(3, 50);
+            txtNoviNazivFajla.Font = new Font("Segoe UI", 15F);
+            txtNoviNazivFajla.Location = new Point(3, 80);
             txtNoviNazivFajla.Name = "txtNoviNazivFajla";
-            txtNoviNazivFajla.Size = new Size(155, 25);
+            txtNoviNazivFajla.Size = new Size(182, 40);
             txtNoviNazivFajla.TabIndex = 6;
             txtNoviNazivFajla.Text = "Novi naziv PDF fajla";
             // 
@@ -161,10 +164,11 @@
             // 
             label4.AutoSize = true;
             label4.Dock = DockStyle.Fill;
+            label4.Font = new Font("Segoe UI", 15F);
             label4.ForeColor = Color.MidnightBlue;
-            label4.Location = new Point(3, 75);
+            label4.Location = new Point(3, 120);
             label4.Name = "label4";
-            label4.Size = new Size(155, 25);
+            label4.Size = new Size(182, 40);
             label4.TabIndex = 7;
             label4.Text = "Polje 1";
             // 
@@ -172,10 +176,11 @@
             // 
             label5.AutoSize = true;
             label5.Dock = DockStyle.Fill;
+            label5.Font = new Font("Segoe UI", 15F);
             label5.ForeColor = Color.MidnightBlue;
-            label5.Location = new Point(3, 100);
+            label5.Location = new Point(3, 160);
             label5.Name = "label5";
-            label5.Size = new Size(155, 25);
+            label5.Size = new Size(182, 40);
             label5.TabIndex = 8;
             label5.Text = "Polje 2";
             // 
@@ -183,21 +188,24 @@
             // 
             label6.AutoSize = true;
             label6.Dock = DockStyle.Fill;
+            label6.Font = new Font("Segoe UI", 15F);
             label6.ForeColor = Color.MidnightBlue;
-            label6.Location = new Point(3, 125);
+            label6.Location = new Point(3, 200);
             label6.Name = "label6";
-            label6.Size = new Size(155, 25);
+            label6.Size = new Size(182, 40);
             label6.TabIndex = 9;
             label6.Text = "Polje 3";
+            label6.Click += label6_Click;
             // 
             // label7
             // 
             label7.AutoSize = true;
             label7.Dock = DockStyle.Fill;
+            label7.Font = new Font("Segoe UI", 15F);
             label7.ForeColor = Color.MidnightBlue;
-            label7.Location = new Point(3, 150);
+            label7.Location = new Point(3, 240);
             label7.Name = "label7";
-            label7.Size = new Size(155, 25);
+            label7.Size = new Size(182, 40);
             label7.TabIndex = 10;
             label7.Text = "Polje 4";
             // 
@@ -205,10 +213,11 @@
             // 
             label8.AutoSize = true;
             label8.Dock = DockStyle.Fill;
+            label8.Font = new Font("Segoe UI", 15F);
             label8.ForeColor = Color.MidnightBlue;
-            label8.Location = new Point(3, 175);
+            label8.Location = new Point(3, 280);
             label8.Name = "label8";
-            label8.Size = new Size(155, 25);
+            label8.Size = new Size(182, 40);
             label8.TabIndex = 11;
             label8.Text = "Polje 5";
             // 
@@ -216,10 +225,11 @@
             // 
             label9.AutoSize = true;
             label9.Dock = DockStyle.Fill;
+            label9.Font = new Font("Segoe UI", 15F);
             label9.ForeColor = Color.MidnightBlue;
-            label9.Location = new Point(3, 200);
+            label9.Location = new Point(3, 320);
             label9.Name = "label9";
-            label9.Size = new Size(155, 25);
+            label9.Size = new Size(182, 40);
             label9.TabIndex = 12;
             label9.Text = "Polje 6";
             // 
@@ -227,10 +237,11 @@
             // 
             label10.AutoSize = true;
             label10.Dock = DockStyle.Fill;
+            label10.Font = new Font("Segoe UI", 15F);
             label10.ForeColor = Color.MidnightBlue;
-            label10.Location = new Point(3, 225);
+            label10.Location = new Point(3, 360);
             label10.Name = "label10";
-            label10.Size = new Size(155, 25);
+            label10.Size = new Size(182, 40);
             label10.TabIndex = 13;
             label10.Text = "Polje 7";
             // 
@@ -238,10 +249,11 @@
             // 
             label11.AutoSize = true;
             label11.Dock = DockStyle.Fill;
+            label11.Font = new Font("Segoe UI", 15F);
             label11.ForeColor = Color.MidnightBlue;
-            label11.Location = new Point(3, 250);
+            label11.Location = new Point(3, 400);
             label11.Name = "label11";
-            label11.Size = new Size(155, 25);
+            label11.Size = new Size(182, 40);
             label11.TabIndex = 14;
             label11.Text = "Polje 8";
             // 
@@ -250,9 +262,9 @@
             button4.BackColor = Color.MidnightBlue;
             button4.Dock = DockStyle.Fill;
             button4.ForeColor = SystemColors.Control;
-            button4.Location = new Point(164, 387);
+            button4.Location = new Point(191, 615);
             button4.Name = "button4";
-            button4.Size = new Size(371, 60);
+            button4.Size = new Size(434, 88);
             button4.TabIndex = 3;
             button4.Text = "Sacuvaj izmene i idi na sledeci";
             button4.UseVisualStyleBackColor = false;
@@ -263,9 +275,9 @@
             button2.BackColor = Color.MidnightBlue;
             button2.Dock = DockStyle.Fill;
             button2.ForeColor = SystemColors.Control;
-            button2.Location = new Point(164, 328);
+            button2.Location = new Point(191, 523);
             button2.Name = "button2";
-            button2.Size = new Size(371, 53);
+            button2.Size = new Size(434, 86);
             button2.TabIndex = 1;
             button2.Text = "Idi na sledeci";
             button2.UseVisualStyleBackColor = false;
@@ -276,9 +288,9 @@
             button1.BackColor = Color.MidnightBlue;
             button1.Dock = DockStyle.Fill;
             button1.ForeColor = SystemColors.Control;
-            button1.Location = new Point(3, 328);
+            button1.Location = new Point(3, 523);
             button1.Name = "button1";
-            button1.Size = new Size(155, 53);
+            button1.Size = new Size(182, 86);
             button1.TabIndex = 0;
             button1.Text = "Predhodni";
             button1.UseVisualStyleBackColor = false;
@@ -289,9 +301,9 @@
             btn_Izvestaj.BackColor = Color.MidnightBlue;
             btn_Izvestaj.Dock = DockStyle.Fill;
             btn_Izvestaj.ForeColor = SystemColors.Control;
-            btn_Izvestaj.Location = new Point(3, 387);
+            btn_Izvestaj.Location = new Point(3, 615);
             btn_Izvestaj.Name = "btn_Izvestaj";
-            btn_Izvestaj.Size = new Size(155, 60);
+            btn_Izvestaj.Size = new Size(182, 88);
             btn_Izvestaj.TabIndex = 2;
             btn_Izvestaj.Text = "Izvestaj";
             btn_Izvestaj.UseVisualStyleBackColor = false;
@@ -301,10 +313,11 @@
             // 
             label12.AutoSize = true;
             label12.Dock = DockStyle.Fill;
+            label12.Font = new Font("Segoe UI", 15F);
             label12.ForeColor = Color.MidnightBlue;
-            label12.Location = new Point(3, 275);
+            label12.Location = new Point(3, 440);
             label12.Name = "label12";
-            label12.Size = new Size(155, 25);
+            label12.Size = new Size(182, 40);
             label12.TabIndex = 26;
             label12.Text = "Datum od";
             label12.Click += label12_Click;
@@ -313,10 +326,11 @@
             // 
             label13.AutoSize = true;
             label13.Dock = DockStyle.Fill;
+            label13.Font = new Font("Segoe UI", 15F);
             label13.ForeColor = Color.MidnightBlue;
-            label13.Location = new Point(3, 300);
+            label13.Location = new Point(3, 480);
             label13.Name = "label13";
-            label13.Size = new Size(155, 25);
+            label13.Size = new Size(182, 40);
             label13.TabIndex = 27;
             label13.Text = "Datum do";
             // 
@@ -325,11 +339,12 @@
             comboBox1.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox1.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox1.Dock = DockStyle.Fill;
+            comboBox1.Font = new Font("Segoe UI", 20F);
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(161, 75);
+            comboBox1.Location = new Point(188, 120);
             comboBox1.Margin = new Padding(0);
             comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(377, 23);
+            comboBox1.Size = new Size(440, 45);
             comboBox1.TabIndex = 30;
             // 
             // comboBox2
@@ -337,11 +352,12 @@
             comboBox2.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox2.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox2.Dock = DockStyle.Fill;
+            comboBox2.Font = new Font("Segoe UI", 20F);
             comboBox2.FormattingEnabled = true;
-            comboBox2.Location = new Point(161, 100);
+            comboBox2.Location = new Point(188, 160);
             comboBox2.Margin = new Padding(0);
             comboBox2.Name = "comboBox2";
-            comboBox2.Size = new Size(377, 23);
+            comboBox2.Size = new Size(440, 45);
             comboBox2.TabIndex = 31;
             // 
             // comboBox3
@@ -349,11 +365,12 @@
             comboBox3.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox3.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox3.Dock = DockStyle.Fill;
+            comboBox3.Font = new Font("Segoe UI", 20F);
             comboBox3.FormattingEnabled = true;
-            comboBox3.Location = new Point(161, 125);
+            comboBox3.Location = new Point(188, 200);
             comboBox3.Margin = new Padding(0);
             comboBox3.Name = "comboBox3";
-            comboBox3.Size = new Size(377, 23);
+            comboBox3.Size = new Size(440, 45);
             comboBox3.TabIndex = 32;
             // 
             // comboBox4
@@ -361,11 +378,12 @@
             comboBox4.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox4.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox4.Dock = DockStyle.Fill;
+            comboBox4.Font = new Font("Segoe UI", 20F);
             comboBox4.FormattingEnabled = true;
-            comboBox4.Location = new Point(161, 150);
+            comboBox4.Location = new Point(188, 240);
             comboBox4.Margin = new Padding(0);
             comboBox4.Name = "comboBox4";
-            comboBox4.Size = new Size(377, 23);
+            comboBox4.Size = new Size(440, 45);
             comboBox4.TabIndex = 33;
             // 
             // comboBox5
@@ -373,11 +391,12 @@
             comboBox5.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox5.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox5.Dock = DockStyle.Fill;
+            comboBox5.Font = new Font("Segoe UI", 20F);
             comboBox5.FormattingEnabled = true;
-            comboBox5.Location = new Point(161, 175);
+            comboBox5.Location = new Point(188, 280);
             comboBox5.Margin = new Padding(0);
             comboBox5.Name = "comboBox5";
-            comboBox5.Size = new Size(377, 23);
+            comboBox5.Size = new Size(440, 45);
             comboBox5.TabIndex = 34;
             // 
             // comboBox6
@@ -385,11 +404,12 @@
             comboBox6.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox6.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox6.Dock = DockStyle.Fill;
+            comboBox6.Font = new Font("Segoe UI", 20F);
             comboBox6.FormattingEnabled = true;
-            comboBox6.Location = new Point(161, 200);
+            comboBox6.Location = new Point(188, 320);
             comboBox6.Margin = new Padding(0);
             comboBox6.Name = "comboBox6";
-            comboBox6.Size = new Size(377, 23);
+            comboBox6.Size = new Size(440, 45);
             comboBox6.TabIndex = 35;
             // 
             // comboBox7
@@ -397,11 +417,12 @@
             comboBox7.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox7.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox7.Dock = DockStyle.Fill;
+            comboBox7.Font = new Font("Segoe UI", 20F);
             comboBox7.FormattingEnabled = true;
-            comboBox7.Location = new Point(161, 225);
+            comboBox7.Location = new Point(188, 360);
             comboBox7.Margin = new Padding(0);
             comboBox7.Name = "comboBox7";
-            comboBox7.Size = new Size(377, 23);
+            comboBox7.Size = new Size(440, 45);
             comboBox7.TabIndex = 36;
             // 
             // comboBox8
@@ -409,20 +430,22 @@
             comboBox8.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox8.AutoCompleteSource = AutoCompleteSource.CustomSource;
             comboBox8.Dock = DockStyle.Fill;
+            comboBox8.Font = new Font("Segoe UI", 20F);
             comboBox8.FormattingEnabled = true;
-            comboBox8.Location = new Point(161, 250);
+            comboBox8.Location = new Point(188, 400);
             comboBox8.Margin = new Padding(0);
             comboBox8.Name = "comboBox8";
-            comboBox8.Size = new Size(377, 23);
+            comboBox8.Size = new Size(440, 45);
             comboBox8.TabIndex = 37;
             // 
             // chkMenjasNaziv
             // 
             chkMenjasNaziv.AutoSize = true;
             chkMenjasNaziv.Dock = DockStyle.Fill;
-            chkMenjasNaziv.Location = new Point(3, 28);
+            chkMenjasNaziv.Font = new Font("Segoe UI", 15F);
+            chkMenjasNaziv.Location = new Point(3, 43);
             chkMenjasNaziv.Name = "chkMenjasNaziv";
-            chkMenjasNaziv.Size = new Size(155, 19);
+            chkMenjasNaziv.Size = new Size(182, 34);
             chkMenjasNaziv.TabIndex = 38;
             chkMenjasNaziv.Text = "Menjas naziv fajla ?";
             chkMenjasNaziv.UseVisualStyleBackColor = true;
@@ -431,7 +454,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(164, 25);
+            label1.Location = new Point(191, 40);
             label1.Name = "label1";
             label1.Size = new Size(0, 15);
             label1.TabIndex = 4;
@@ -440,35 +463,38 @@
             // textBox2
             // 
             textBox2.Dock = DockStyle.Fill;
-            textBox2.Location = new Point(161, 50);
+            textBox2.Font = new Font("Segoe UI", 20F);
+            textBox2.Location = new Point(188, 80);
             textBox2.Margin = new Padding(0);
             textBox2.Name = "textBox2";
-            textBox2.Size = new Size(377, 23);
+            textBox2.Size = new Size(440, 43);
             textBox2.TabIndex = 40;
             // 
             // textBoxDatumOd
             // 
             textBoxDatumOd.Dock = DockStyle.Fill;
-            textBoxDatumOd.Location = new Point(164, 278);
+            textBoxDatumOd.Font = new Font("Segoe UI", 20F);
+            textBoxDatumOd.Location = new Point(191, 443);
             textBoxDatumOd.Name = "textBoxDatumOd";
             textBoxDatumOd.PlaceholderText = "dd.MM.yyyy.";
-            textBoxDatumOd.Size = new Size(371, 23);
+            textBoxDatumOd.Size = new Size(434, 43);
             textBoxDatumOd.TabIndex = 41;
             // 
             // textBoxDatumDo
             // 
             textBoxDatumDo.Dock = DockStyle.Fill;
-            textBoxDatumDo.Location = new Point(164, 303);
+            textBoxDatumDo.Font = new Font("Segoe UI", 20F);
+            textBoxDatumDo.Location = new Point(191, 483);
             textBoxDatumDo.Name = "textBoxDatumDo";
             textBoxDatumDo.PlaceholderText = "dd.MM.yyyy.";
-            textBoxDatumDo.Size = new Size(371, 23);
+            textBoxDatumDo.Size = new Size(434, 43);
             textBoxDatumDo.TabIndex = 42;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(1096, 706);
             Controls.Add(splitContainer1);
             Name = "Form1";
             Text = "Form1";

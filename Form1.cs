@@ -72,16 +72,22 @@
             string datumOdText = textBoxDatumOd.Text.Trim();
             string datumDoText = textBoxDatumDo.Text.Trim();
 
-            if (!DateTime.TryParseExact(datumOdText, "dd.MM.yyyy.", null, System.Globalization.DateTimeStyles.None, out DateTime datumOd))
+            if (!string.IsNullOrWhiteSpace(datumOdText))
             {
-                MessageBox.Show("Datum OD nije validan. Koristite format: dd.MM.yyyy.");
-                return false;
+                if (!DateTime.TryParseExact(datumOdText, "dd.MM.yyyy.", null, System.Globalization.DateTimeStyles.None, out _))
+                {
+                    MessageBox.Show("Datum OD nije validan. Koristite format: dd.MM.yyyy.");
+                    return false;
+                }
             }
 
-            if (!DateTime.TryParseExact(datumDoText, "dd.MM.yyyy.", null, System.Globalization.DateTimeStyles.None, out DateTime datumDo))
+            if (!string.IsNullOrWhiteSpace(datumDoText))
             {
-                MessageBox.Show("Datum DO nije validan. Koristite format: dd.MM.yyyy.");
-                return false;
+                if (!DateTime.TryParseExact(datumDoText, "dd.MM.yyyy.", null, System.Globalization.DateTimeStyles.None, out _))
+                {
+                    MessageBox.Show("Datum DO nije validan. Koristite format: dd.MM.yyyy.");
+                    return false;
+                }
             }
 
             return true;
@@ -137,14 +143,22 @@
         //Metoda za prelazak na sledeci fajl
         private void PredjiNaSledeciFajl()
         {
-            if (trenutniIndex < pdfFajlovi.Count - 1)
+            trenutniIndex++;
+
+            if (trenutniIndex >= pdfFajlovi.Count)
             {
-                trenutniIndex++;
-                PrikaziTrenutniFajl();
+                // Nema više fajlova za prikaz
+                lblNazivPdfFajla.Text = "Nema više fajlova za prikaz";
+                OcistiPolja();
+                // Po potrebi onemogući kontrole da korisnik ne može menjati ništa više
+                // Na primer:
+                chkMenjasNaziv.Enabled = false;
+                textBox2.Enabled = false;
+                // itd.
             }
             else
             {
-                MessageBox.Show("Nema više fajlova.");
+                PrikaziTrenutniFajl();
             }
         }
         //PRIKAZIVANJE PODATAKA NA FORMU
@@ -242,7 +256,7 @@
                 pdfViewer = null;
             }
         }
-       
+
         //METODA ZA CISCENJE POLJA
         private void OcistiPolja()
         {
@@ -315,7 +329,7 @@
             worksheet.Cell(red, kolona).Value = "Ime operatera";
 
             red++;
-            
+
 
             // 🔁 Dodaj podatke za sve premeštene fajlove
             foreach (var pdf in pdfFajlovi)
@@ -324,7 +338,7 @@
                 string noviNaziv = string.IsNullOrWhiteSpace(pdf.NewFileName) ? pdf.FileName : pdf.NewFileName;
 
                 string fajlPutanja = Path.Combine(outputFolderPath, noviNaziv);
-               
+
 
                 int kol = 1;
 
@@ -343,6 +357,7 @@
             }
 
             workbook.SaveAs(workbookPath);
+            worksheet.Columns().AdjustToContents();
 
             // ✅ Otvori Excel fajl
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -390,12 +405,27 @@
             PremestiTrenutniPdfUFolder();
             PredjiNaSledeciFajl();
             OcistiPolja();
+            if (trenutniIndex >= pdfFajlovi.Count)
+            {
+                MessageBox.Show("Svi fajlovi su obrađeni!", "Gotovo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                try
+                {
+                    GenerisiIzvestajExcel();
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Greška pri generisanju ili otvaranju izveštaja: " + ex.Message, "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
         //Dugme za izvestaj
         private void btnIzvestaj_Click(object sender, EventArgs e)
         {
+            MessageBox.Show("Pozivam generisi izvestaj");
             GenerisiIzvestajExcel();
-           
+
         }
 
 
@@ -435,6 +465,16 @@
         }
 
         private void btn_Izvestaj_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
         {
 
         }

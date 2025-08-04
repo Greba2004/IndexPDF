@@ -141,6 +141,7 @@
             textBoxOperater.Name = "textBoxOperater";
             textBoxOperater.Size = new Size(498, 48);
             textBoxOperater.TabIndex = 8;
+            textBoxOperater.KeyDown += textBoxOperater_KeyDown;
             // 
             // label4
             // 

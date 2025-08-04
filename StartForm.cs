@@ -35,22 +35,42 @@ namespace IndexPDF2
         {
             string inputPath = TextBoxInput.Text;
             string outputPath = textBoxOutput.Text;
+            string imeOperatera = textBoxOperater.Text;
 
-            if (string.IsNullOrWhiteSpace(inputPath) || string.IsNullOrWhiteSpace(outputPath))
+
+            if (string.IsNullOrWhiteSpace(inputPath) || string.IsNullOrWhiteSpace(outputPath) || string.IsNullOrWhiteSpace(imeOperatera))
             {
-                MessageBox.Show("Morate uneti oba foldera!");
+                MessageBox.Show("Morate popuniti sva tri polja: Input folder, Output folder i ime operatera!", "Greška", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            Form1 mainForm = new Form1(inputPath, outputPath, ImeOperatera);
+
+            string[] pdfFajlovi = Directory.GetFiles(inputPath, "*.pdf", SearchOption.TopDirectoryOnly);
+            if (pdfFajlovi.Length == 0)
+            {
+                MessageBox.Show("Input folder ne sadrži nijedan PDF fajl!", "Greška", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            Form1 mainForm = new Form1(inputPath, outputPath, imeOperatera);
             mainForm.Show();
-            this.Hide(); // sakrij start formu
+            this.Hide();
         }
         public string ImeOperatera => textBoxOperater.Text;
 
         private void label4_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void textBoxOperater_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnDalje.PerformClick(); // Simulira klik na dugme
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
         }
     }
 }
