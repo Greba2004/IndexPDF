@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using IndexPDF2.Properties;
 
 namespace IndexPDF2
 {
@@ -15,6 +16,9 @@ namespace IndexPDF2
         public StartForm()
         {
             InitializeComponent();
+            TextBoxInput.Text = Properties.Settings.Default.InputFolder;
+            textBoxOutput.Text = Properties.Settings.Default.OutputFolder;
+            textBoxOperater.Text = Properties.Settings.Default.Operater;
         }
 
         private void btnInputBrowse_Click(object sender, EventArgs e)
@@ -51,6 +55,10 @@ namespace IndexPDF2
                 MessageBox.Show("Input folder ne sadrži nijedan PDF fajl!", "Greška", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            Properties.Settings.Default.InputFolder = inputPath;
+            Properties.Settings.Default.OutputFolder = outputPath;
+            Properties.Settings.Default.Operater = imeOperatera;
+            Properties.Settings.Default.Save();
 
             Form1 mainForm = new Form1(inputPath, outputPath, imeOperatera);
             mainForm.Show();

@@ -25,6 +25,8 @@
             this.inputFolderPath = inputFolder;
             this.outputFolderPath = outputFolder;
             this.operatorName = operatorName;
+            this.KeyPreview = true;
+            this.KeyDown += Form1_KeyDown;
 
             // Ovde definišeš gde se nalazi Excel fajl
             configExcelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xlsx");
@@ -66,6 +68,20 @@
             }
             return true;
         }
+        // Enter simulira button sacuvaj
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+              
+                if (!(ActiveControl is Button))
+                {
+                    btnSacuvaj.PerformClick(); 
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
+            }
+        }
         //Validacija datuma
         private bool ValidirajDatume()
         {
@@ -102,7 +118,11 @@
                 var label = this.Controls.Find(labelName, true).FirstOrDefault() as Label;
                 if (label != null)
                 {
-                    label.Text = configData.PoljaNazivi[i];
+                    label.Text = configData.PoljaNazivi[i] + (configData.PoljaObavezna[i] ? " *" : "");
+
+                    // Ako je obavezno, promeni boju
+                    if (configData.PoljaObavezna[i])
+                        label.ForeColor = Color.Red;
                 }
 
                 // Postavi AutoComplete za odgovarajući ComboBox (comboBox1 do comboBox8)
@@ -309,64 +329,81 @@
         //DODAVANJE Reda u izvestaj
         private void GenerisiIzvestajExcel()
         {
-            var workbookPath = Path.Combine(outputFolderPath, "izvestaj.xlsx");
-            var workbook = new XLWorkbook();
-            var worksheet = workbook.AddWorksheet("Izvestaj");
-
-            int red = 1;
-            int kolona = 1;
-
-            // ✅ Naslovi kolona
-            worksheet.Cell(red, kolona++).Value = "Stari naziv fajla";
-            worksheet.Cell(red, kolona++).Value = "Novi naziv fajla";
-
-            foreach (var naziv in configData.PoljaNazivi)
-                worksheet.Cell(red, kolona++).Value = naziv;
-
-            worksheet.Cell(red, kolona++).Value = "Datum Od";
-            worksheet.Cell(red, kolona++).Value = "Datum Do";
-            worksheet.Cell(red, kolona++).Value = "Datum obrade";
-            worksheet.Cell(red, kolona).Value = "Ime operatera";
-
-            red++;
-
-
-            // 🔁 Dodaj podatke za sve premeštene fajlove
-            foreach (var pdf in pdfFajlovi)
+            try
             {
-                // Odredi novi naziv fajla (ako postoji)
-                string noviNaziv = string.IsNullOrWhiteSpace(pdf.NewFileName) ? pdf.FileName : pdf.NewFileName;
+                // ✅ Glavni folder gde se čuva trenutni izveštaj
+                var workbookPath = Path.Combine(outputFolderPath, "izvestaj.xlsx");
 
-                string fajlPutanja = Path.Combine(outputFolderPath, noviNaziv);
+                // ✅ Kreiranje “archive” foldera pored aplikacije
+                string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string archiveFolder = Path.Combine(appDirectory, "SviIzvestaji");
+                if (!Directory.Exists(archiveFolder))
+                {
+                    Directory.CreateDirectory(archiveFolder);
+                }
 
+                // ✅ Kreiranje Excel fajla
+                var workbook = new XLWorkbook();
+                var worksheet = workbook.AddWorksheet("Izvestaj");
 
-                int kol = 1;
+                int red = 1;
+                int kolona = 1;
 
-                worksheet.Cell(red, kol++).Value = pdf.FileName;   // Stari naziv
-                worksheet.Cell(red, kol++).Value = noviNaziv;       // Novi naziv
-
-                for (int i = 0; i < 8; i++)
-                    worksheet.Cell(red, kol++).Value = pdf.Polja[i] ?? "";
-
-                worksheet.Cell(red, kol++).Value = pdf.Polja[8] ?? "";
-                worksheet.Cell(red, kol++).Value = pdf.Polja[9] ?? "";
-                worksheet.Cell(red, kol++).Value = pdf.DatumObrade.ToString("dd.MM.yyyy. HH:mm:ss");
-                worksheet.Cell(red, kol).Value = operatorName; // koristim promenljivu iz Form1
+                // Naslovi kolona
+                worksheet.Cell(red, kolona++).Value = "Stari naziv fajla";
+                worksheet.Cell(red, kolona++).Value = "Novi naziv fajla";
+                foreach (var naziv in configData.PoljaNazivi)
+                    worksheet.Cell(red, kolona++).Value = naziv;
+                worksheet.Cell(red, kolona++).Value = "Datum Od";
+                worksheet.Cell(red, kolona++).Value = "Datum Do";
+                worksheet.Cell(red, kolona++).Value = "Datum obrade";
+                worksheet.Cell(red, kolona).Value = "Ime operatera";
 
                 red++;
+
+                // Dodavanje podataka za sve PDF fajlove
+                foreach (var pdf in pdfFajlovi)
+                {
+                    string noviNaziv = string.IsNullOrWhiteSpace(pdf.NewFileName) ? pdf.FileName : pdf.NewFileName;
+                    int kol = 1;
+
+                    worksheet.Cell(red, kol++).Value = pdf.FileName;
+                    worksheet.Cell(red, kol++).Value = noviNaziv;
+
+                    for (int i = 0; i < 8; i++)
+                        worksheet.Cell(red, kol++).Value = pdf.Polja[i] ?? "";
+
+                    worksheet.Cell(red, kol++).Value = pdf.Polja[8] ?? "";
+                    worksheet.Cell(red, kol++).Value = pdf.Polja[9] ?? "";
+                    worksheet.Cell(red, kol++).Value = pdf.DatumObrade.ToString("dd.MM.yyyy. HH:mm:ss");
+                    worksheet.Cell(red, kol).Value = operatorName;
+
+                    red++;
+                }
+
+                worksheet.Columns().AdjustToContents();
+                workbook.SaveAs(workbookPath); // čuvanje glavnog izveštaja
+
+                // ✅ Sačuvaj kopiju sa timestamp-om u “archive” folder
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+                string archiveFileName = $"Izvestaj_{timestamp}.xlsx";
+                string archiveFilePath = Path.Combine(archiveFolder, archiveFileName);
+                workbook.SaveAs(archiveFilePath);
+
+                // Otvori glavni izveštaj
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = workbookPath,
+                    UseShellExecute = true
+                });
+
+                MessageBox.Show($"Izveštaj je uspešno generisan i otvoren.\nKopija je sačuvana u folderu 'SviIzvestaji'.",
+                                "Uspeh", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-
-            workbook.SaveAs(workbookPath);
-            worksheet.Columns().AdjustToContents();
-
-            // ✅ Otvori Excel fajl
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            catch (Exception ex)
             {
-                FileName = workbookPath,
-                UseShellExecute = true
-            });
-
-            MessageBox.Show("Izveštaj je uspešno generisan i otvoren.", "Uspeh", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Greška pri generisanju izveštaja: " + ex.Message, "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         //Dugme za sledeci
@@ -392,27 +429,41 @@
         //Dugme za cuvanje izmena
         private void btnSacuvaj_Click(object sender, EventArgs e)
         {
-            // Proveri da li su obavezna polja popunjena
             if (!ValidirajObaveznaPolja())
                 return;
             if (!ValidirajDatume())
                 return;
+
+
             SacuvajUnetePodatkeUTrenutniPdf();
+
             if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
             {
                 pdfFajlovi[trenutniIndex].DatumObrade = DateTime.Now;
             }
+
+
             PremestiTrenutniPdfUFolder();
+
             PredjiNaSledeciFajl();
+
             OcistiPolja();
+
             if (trenutniIndex >= pdfFajlovi.Count)
             {
                 MessageBox.Show("Svi fajlovi su obrađeni!", "Gotovo", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 try
                 {
+                    // ✅ Generiši izveštaj
                     GenerisiIzvestajExcel();
 
+                    // ✅ Ako je input folder prazan, ugasi aplikaciju
+                    if (Directory.GetFiles(inputFolderPath, "*.pdf").Length == 0)
+                    {
+                        MessageBox.Show("Ulazni folder je prazan. Aplikacija će se zatvoriti.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        Application.Exit();
+                    }
                 }
                 catch (Exception ex)
                 {

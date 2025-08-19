@@ -40,7 +40,7 @@
             label9 = new Label();
             label10 = new Label();
             label11 = new Label();
-            button4 = new Button();
+            btnSacuvaj = new Button();
             button2 = new Button();
             button1 = new Button();
             btn_Izvestaj = new Button();
@@ -95,7 +95,7 @@
             tableLayoutPanel1.Controls.Add(label9, 0, 8);
             tableLayoutPanel1.Controls.Add(label10, 0, 9);
             tableLayoutPanel1.Controls.Add(label11, 0, 10);
-            tableLayoutPanel1.Controls.Add(button4, 1, 14);
+            tableLayoutPanel1.Controls.Add(btnSacuvaj, 1, 14);
             tableLayoutPanel1.Controls.Add(button2, 1, 13);
             tableLayoutPanel1.Controls.Add(button1, 0, 13);
             tableLayoutPanel1.Controls.Add(btn_Izvestaj, 0, 14);
@@ -257,18 +257,18 @@
             label11.TabIndex = 14;
             label11.Text = "Polje 8";
             // 
-            // button4
+            // btnSacuvaj
             // 
-            button4.BackColor = Color.MidnightBlue;
-            button4.Dock = DockStyle.Fill;
-            button4.ForeColor = SystemColors.Control;
-            button4.Location = new Point(191, 615);
-            button4.Name = "button4";
-            button4.Size = new Size(434, 88);
-            button4.TabIndex = 3;
-            button4.Text = "Sacuvaj izmene i idi na sledeci";
-            button4.UseVisualStyleBackColor = false;
-            button4.Click += btnSacuvaj_Click;
+            btnSacuvaj.BackColor = Color.MidnightBlue;
+            btnSacuvaj.Dock = DockStyle.Fill;
+            btnSacuvaj.ForeColor = SystemColors.Control;
+            btnSacuvaj.Location = new Point(191, 615);
+            btnSacuvaj.Name = "btnSacuvaj";
+            btnSacuvaj.Size = new Size(434, 88);
+            btnSacuvaj.TabIndex = 3;
+            btnSacuvaj.Text = "Sacuvaj izmene i idi na sledeci";
+            btnSacuvaj.UseVisualStyleBackColor = false;
+            btnSacuvaj.Click += btnSacuvaj_Click;
             // 
             // button2
             // 
@@ -513,7 +513,7 @@
         private Button button1;
         private Button button2;
         private Button btn_Izvestaj;
-        private Button button4;
+        private Button btnSacuvaj;
         private Label label11;
         private Label label10;
         private Label label9;
