@@ -16,7 +16,8 @@
         string inputFolderPath = "";
         string outputFolderPath = "";
         string operatorName = "";
-        string configExcelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xlsx");
+        string configExcelPath;
+
 
         public Form1(string inputFolder, string outputFolder, string operatorName)
         {
@@ -24,14 +25,14 @@
             this.inputFolderPath = inputFolder;
             this.outputFolderPath = outputFolder;
             this.operatorName = operatorName;
+
+            // Ovde definišeš gde se nalazi Excel fajl
+            configExcelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xlsx");
+
             try
             {
                 configData = ExcelConfigLoader.UcitajKonfiguracijuIzExcel(configExcelPath);
-
-
                 PostaviNazivePoljaUI();
-
-
             }
             catch (Exception ex)
             {
@@ -41,7 +42,6 @@
             UcitajPdfFajlove();
             if (pdfFajlovi.Count > 0)
             {
-
                 trenutniIndex = 0;
                 PrikaziTrenutniFajl();
             }
