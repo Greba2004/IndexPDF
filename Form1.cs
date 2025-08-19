@@ -73,10 +73,10 @@
         {
             if (e.KeyCode == Keys.Enter)
             {
-              
+
                 if (!(ActiveControl is Button))
                 {
-                    btnSacuvaj.PerformClick(); 
+                    btnSacuvaj.PerformClick();
                     e.Handled = true;
                     e.SuppressKeyPress = true;
                 }
@@ -477,6 +477,12 @@
             MessageBox.Show("Pozivam generisi izvestaj");
             GenerisiIzvestajExcel();
 
+        }
+        private void btnZameniFormu_Click(object sender, EventArgs e)
+        {
+            FormMenica menicaForm = new FormMenica(inputFolderPath, outputFolderPath, operatorName);
+            menicaForm.Show();
+            this.Hide(); // sakrije trenutnu formu ako želiš
         }
 
 

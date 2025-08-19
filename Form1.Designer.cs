@@ -59,6 +59,7 @@
             textBox2 = new TextBox();
             textBoxDatumOd = new TextBox();
             textBoxDatumDo = new TextBox();
+            btnZameniFormu = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.SuspendLayout();
@@ -114,6 +115,7 @@
             tableLayoutPanel1.Controls.Add(textBox2, 1, 2);
             tableLayoutPanel1.Controls.Add(textBoxDatumOd, 1, 11);
             tableLayoutPanel1.Controls.Add(textBoxDatumDo, 1, 12);
+            tableLayoutPanel1.Controls.Add(btnZameniFormu, 1, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.MinimumSize = new Size(0, 50);
@@ -490,6 +492,19 @@
             textBoxDatumDo.Size = new Size(434, 43);
             textBoxDatumDo.TabIndex = 42;
             // 
+            // btnZameniFormu
+            // 
+            btnZameniFormu.BackColor = Color.MidnightBlue;
+            btnZameniFormu.Font = new Font("Segoe UI", 11F);
+            btnZameniFormu.ForeColor = SystemColors.ButtonHighlight;
+            btnZameniFormu.Location = new Point(191, 3);
+            btnZameniFormu.Name = "btnZameniFormu";
+            btnZameniFormu.Size = new Size(157, 34);
+            btnZameniFormu.TabIndex = 43;
+            btnZameniFormu.Text = "Forma menice";
+            btnZameniFormu.UseVisualStyleBackColor = false;
+            btnZameniFormu.Click += btnZameniFormu_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -540,5 +555,6 @@
         private TextBox textBox2;
         private TextBox textBoxDatumOd;
         private TextBox textBoxDatumDo;
+        private Button btnZameniFormu;
     }
 }
