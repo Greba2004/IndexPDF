@@ -36,9 +36,19 @@ namespace IndexPDF2
             this.KeyPreview = true;
             this.KeyDown += FormMenica_KeyDown;
 
-            configExcelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xlsx");
-            MessageBox.Show("Config fajl se traži na putanji:\n" + configExcelPath);
+            // --- Kreiraj folder u ProgramData ---
+            string appDataFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "IndexPDF"
+            );
 
+            if (!Directory.Exists(appDataFolder))
+                Directory.CreateDirectory(appDataFolder);
+
+            // --- Podesi putanju do config.xlsx ---
+            configExcelPath = Path.Combine(appDataFolder, "config.xlsx");
+
+            // --- Pokušaj da učitaš konfiguraciju ---
             try
             {
                 configData = ExcelConfigLoader.UcitajKonfiguracijuIzExcel(configExcelPath);
@@ -46,9 +56,12 @@ namespace IndexPDF2
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Greška pri učitavanju Excel fajla: " + ex.Message);
+                MessageBox.Show("Greška pri učitavanju Excel fajla: " + ex.Message +
+                                "\nMolimo postavite 'config.xlsx' u folder:\n" + configExcelPath,
+                                "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
+            // --- Učitaj PDF fajlove ---
             UcitajPdfFajlove();
             if (pdfFajlovi.Count > 0)
             {
@@ -248,6 +261,7 @@ namespace IndexPDF2
                 }
             }
         }
+        
 
         // --- IZVEŠTAJ ---
         private void GenerisiIzvestajExcel()
@@ -446,6 +460,18 @@ namespace IndexPDF2
         {
             GenerisiIzvestajExcel();
         }
-        
+
+
+
+        private void btnObicnaForma_Click(object sender, EventArgs e)
+        {
+            // Prikaži Form1
+            Form1 mainForm = new Form1(inputFolderPath, outputFolderPath, operatorName);
+            mainForm.Show();
+
+            // Sakrij ili zatvori FormMenica
+            this.Hide();
+
+        }
     }
 }

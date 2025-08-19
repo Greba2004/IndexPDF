@@ -28,8 +28,16 @@
             this.KeyPreview = true;
             this.KeyDown += Form1_KeyDown;
 
-            // Ovde definišeš gde se nalazi Excel fajl
-            configExcelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xlsx");
+            // --- Folder u ProgramData ---
+            string appDataFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "IndexPDF"
+            );
+
+            if (!Directory.Exists(appDataFolder))
+                Directory.CreateDirectory(appDataFolder);
+
+            configExcelPath = Path.Combine(appDataFolder, "config.xlsx");
 
             try
             {
@@ -38,7 +46,9 @@
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Greška pri učitavanju Excel fajla: " + ex.Message);
+                MessageBox.Show("Greška pri učitavanju Excel fajla: " + ex.Message +
+                                "\nMolimo postavite 'config.xlsx' u folder:\n" + configExcelPath,
+                                "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             UcitajPdfFajlove();

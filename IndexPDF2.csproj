@@ -10,14 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="config.xlsx" />
     <None Remove="pdfium.dll" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="config.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="pdfium.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
