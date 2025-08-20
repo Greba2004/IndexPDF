@@ -17,6 +17,7 @@
         string outputFolderPath = "";
         string operatorName = "";
         string configExcelPath;
+        public List<InputPdfFile> pdfFajloviZajednicki { get; set; } = new List<InputPdfFile>();
 
 
         public Form1(string inputFolder, string outputFolder, string operatorName)
@@ -330,12 +331,18 @@
 
             if (File.Exists(trenutniPdf.OriginalPath))
             {
-                File.Move(trenutniPdf.OriginalPath, novaPutanja);
+                // Prvo oslobodi dokument i viewer
+                OslobodiPdfViewer();
 
-                // Ažuriraj OriginalPath u objektu da pokazuje na novu lokaciju
+                // Sačekaj trenutak da se fajl potpuno oslobodi (nekad je potrebno)
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                File.Move(trenutniPdf.OriginalPath, novaPutanja);
                 trenutniPdf.OriginalPath = novaPutanja;
             }
         }
+       
         //DODAVANJE Reda u izvestaj
         private void GenerisiIzvestajExcel()
         {
@@ -372,8 +379,25 @@
                 red++;
 
                 // Dodavanje podataka za sve PDF fajlove
-                foreach (var pdf in pdfFajlovi)
+                foreach (var pdf in pdfFajloviZajednicki)
+
                 {
+                    // Preskoči PDF ako nije obrađen
+                    if (pdf.DatumObrade == DateTime.MinValue)
+                        continue;
+
+                    // Proveri obavezna polja
+                    bool validan = true;
+                    for (int i = 0; i < configData.PoljaObavezna.Length; i++)
+                    {
+                        if (configData.PoljaObavezna[i] && string.IsNullOrWhiteSpace(pdf.Polja[i]))
+                        {
+                            validan = false;
+                            break;
+                        }
+                    }
+                    if (!validan)
+                        continue;
                     string noviNaziv = string.IsNullOrWhiteSpace(pdf.NewFileName) ? pdf.FileName : pdf.NewFileName;
                     int kol = 1;
 
@@ -490,10 +514,12 @@
         }
         private void btnZameniFormu_Click(object sender, EventArgs e)
         {
-            FormMenica menicaForm = new FormMenica(inputFolderPath, outputFolderPath, operatorName);
+            OslobodiPdfViewer();
+            FormMenica menicaForm = new FormMenica(inputFolderPath, outputFolderPath, operatorName, pdfFajlovi);
             menicaForm.Show();
-            this.Hide(); // sakrije trenutnu formu ako želiš
+            this.Hide();
         }
+
 
 
         public Form1()

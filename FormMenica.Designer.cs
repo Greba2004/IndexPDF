@@ -415,6 +415,7 @@
             button3.TabIndex = 56;
             button3.Text = "Obicna forma";
             button3.UseVisualStyleBackColor = false;
+            button3.Click += btnObicnaForma_Click;
             // 
             // FormMenica
             // 
