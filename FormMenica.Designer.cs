@@ -425,6 +425,7 @@
             Controls.Add(tableLayoutPanel1);
             Name = "FormMenica";
             Text = "FormMenica";
+            Load += FormMenica_Load;
             tableLayoutPanel1.ResumeLayout(false);
             flowLayoutPanel1.ResumeLayout(false);
             flowLayoutPanel1.PerformLayout();

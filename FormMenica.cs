@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using PdfiumViewer;
@@ -21,9 +22,12 @@ namespace IndexPDF2
         string outputFolderPath = "";
         string operatorName = "";
         string configExcelPath;
+        string csvTempPath;
 
         PdfViewer pdfViewer = new PdfViewer(); // PDF pregled
         List<InputPdfFile> pdfFajloviZajednicki;
+        private Form1 mainForm;
+        private bool sviFajloviObradjeni = false;
 
         // KONSTRUKTOR
         public FormMenica(string inputFolder, string outputFolder, string operatorName, List<InputPdfFile> pdfZajednicki)
@@ -34,7 +38,9 @@ namespace IndexPDF2
             this.outputFolderPath = outputFolder;
             this.operatorName = operatorName;
             this.pdfFajloviZajednicki = pdfZajednicki;
-            this.pdfFajlovi = pdfFajloviZajednicki;
+            this.pdfFajlovi = new List<InputPdfFile>(pdfZajednicki);
+            this.FormClosing += FormMenica_FormClosing;
+           
             if (pdfFajlovi.Count > 0)
             {
                 trenutniIndex = 0;
@@ -45,21 +51,21 @@ namespace IndexPDF2
 
             // --- Kreiraj folder u ProgramData ---
             string appDataFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                "IndexPDF"
-            );
+               Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+               "IndexPDF"
+           );
 
             if (!Directory.Exists(appDataFolder))
                 Directory.CreateDirectory(appDataFolder);
 
-            // --- Podesi putanju do config.xlsx ---
             configExcelPath = Path.Combine(appDataFolder, "config.xlsx");
+            csvTempPath = Path.Combine(appDataFolder, "podaci_temp.csv");
 
-            // --- Pokušaj da učitaš konfiguraciju ---
             try
             {
                 configData = ExcelConfigLoader.UcitajKonfiguracijuIzExcel(configExcelPath);
                 PostaviNazivePoljaUI();
+                UcitajPodatkeIzCsv();
             }
             catch (Exception ex)
             {
@@ -75,6 +81,7 @@ namespace IndexPDF2
                 trenutniIndex = 0;
                 PrikaziTrenutniFajl();
             }
+
         }
 
         // --- VALIDACIJA ---
@@ -114,6 +121,19 @@ namespace IndexPDF2
             }
 
             return true;
+        }
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+
+                if (!(ActiveControl is Button))
+                {
+                    btnSacuvaj.PerformClick();
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
+            }
         }
 
         // --- UI POLJA ---
@@ -273,7 +293,12 @@ namespace IndexPDF2
             if (pdfFajloviZajednicki == null)
                 pdfFajloviZajednicki = new List<InputPdfFile>();
 
-            pdfFajloviZajednicki.Add(pdf);
+            // Dodaj samo ako nije već dodat i ako je fajl validno obrađen
+            if (pdf.DatumObrade != DateTime.MinValue &&
+                !pdfFajloviZajednicki.Any(p => p.OriginalPath == pdf.OriginalPath))
+            {
+                pdfFajloviZajednicki.Add(pdf);
+            }
         }
 
 
@@ -309,23 +334,20 @@ namespace IndexPDF2
 
                 foreach (var pdf in pdfFajloviZajednicki)
                 {
-                        // Preskoči PDF ako nije obrađen
-                        if (pdf.DatumObrade == DateTime.MinValue)
-                            continue;
-
-                        // Proveri obavezna polja
-                        bool validan = true;
-                        for (int i = 0; i < configData.PoljaObavezna.Length; i++)
+                    bool sviPopunjeni = true;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (configData.PoljaObavezna[i] && string.IsNullOrWhiteSpace(pdf.Polja[i]))
                         {
-                            if (configData.PoljaObavezna[i] && string.IsNullOrWhiteSpace(pdf.Polja[i]))
-                            {
-                                validan = false;
-                                break;
-                            }
+                            sviPopunjeni = false;
+                            break;
                         }
-                        if (!validan)
-                            continue;
-                        string noviNaziv = string.IsNullOrWhiteSpace(pdf.NewFileName) ? pdf.FileName : pdf.NewFileName;
+                    }
+
+                    // Ako nisu popunjena obavezna polja, preskoči ovaj red
+                    if (!sviPopunjeni) continue;
+
+                    string noviNaziv = string.IsNullOrWhiteSpace(pdf.NewFileName) ? pdf.FileName : pdf.NewFileName;
                     int kol = 1;
 
                     worksheet.Cell(red, kol++).Value = pdf.FileName;
@@ -381,6 +403,21 @@ namespace IndexPDF2
                 PrikaziTrenutniFajl();
             }
         }
+        public void OtvoriPdf(string putanjaPdf)
+        {
+            if (string.IsNullOrEmpty(putanjaPdf) || !File.Exists(putanjaPdf))
+                return;
+
+            // Oslobodi prethodni PDFViewer
+            if (pdfViewer.Document != null)
+            {
+                pdfViewer.Document.Dispose();
+                pdfViewer.Document = null;
+            }
+
+            var doc = PdfiumViewer.PdfDocument.Load(putanjaPdf);
+            pdfViewer.Document = doc;
+        }
 
         private void OcistiPolja()
         {
@@ -407,6 +444,88 @@ namespace IndexPDF2
                 e.SuppressKeyPress = true;
             }
         }
+        private void FormMenica_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (sviFajloviObradjeni)
+            {
+                // Preskoči dijalog i samo sacuvaj CSV
+                SacuvajPodatkeUCsv();
+                return;
+            }
+            // Opciono: pitaj korisnika da potvrdi izlazak
+            MessageBox.Show("FormClosing event aktiviran!");
+            var result = MessageBox.Show("Da li želite da izađete iz aplikacije?",
+                                         "Potvrda", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.No)
+            {
+                e.Cancel = true; // poništi zatvaranje
+                return;
+            }
+
+            // Sačuvaj sve trenutne podatke u CSV pre zatvaranja
+            SacuvajPodatkeUCsv();
+
+           
+        }
+        private void SacuvajPodatkeUCsv()
+        {
+            try
+            {
+                // Ukloni sve fajlove koji nisu u output folderu
+                var pdfZaCuvanje = pdfFajloviZajednicki
+                    .Where(p => File.Exists(p.OriginalPath) && p.OriginalPath.StartsWith(outputFolderPath))
+                    .ToList();
+
+                using (var writer = new StreamWriter(csvTempPath, false)) // overwrite
+                {
+                    foreach (var pdf in pdfZaCuvanje)
+                    {
+                        string linija = string.Join(";", new string[]
+                        {
+                    pdf.FileName,
+                    pdf.NewFileName ?? "",
+                    string.Join("|", pdf.Polja ?? new string[10]),
+                    pdf.DatumObrade == DateTime.MinValue ? "" : pdf.DatumObrade.ToString("o"),
+                    operatorName
+                        });
+                        writer.WriteLine(linija);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Greška pri čuvanju CSV fajla: " + ex.Message);
+            }
+        }
+        private void UcitajPodatkeIzCsv()
+        {
+            try
+            {
+                if (!File.Exists(csvTempPath)) return;
+
+                var lines = File.ReadAllLines(csvTempPath);
+                foreach (var line in lines)
+                {
+                    var delovi = line.Split(';');
+                    if (delovi.Length >= 5)
+                    {
+                        var pdf = new InputPdfFile(delovi[0]);
+                        pdf.NewFileName = delovi[1];
+                        pdf.Polja = delovi[2].Split('|');
+                        if (DateTime.TryParse(delovi[3], out var dt))
+                            pdf.DatumObrade = dt;
+
+                        // Dodaj samo ako fajl postoji u output folderu
+                        if (File.Exists(pdf.OriginalPath) && pdf.OriginalPath.StartsWith(outputFolderPath))
+                            pdfFajloviZajednicki.Add(pdf);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Greška pri učitavanju CSV fajla: " + ex.Message);
+            }
+        }
 
         private void chkMenjasNaziv_CheckedChanged(object sender, EventArgs e)
         {
@@ -431,31 +550,40 @@ namespace IndexPDF2
             if (!ValidirajDatume())
                 return;
 
-
+            // Sačuvaj trenutne podatke u PDF objekt
             SacuvajUnetePodatkeUTrenutniPdf();
 
             if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
             {
-                pdfFajlovi[trenutniIndex].DatumObrade = DateTime.Now;
+                var trenutniPdf = pdfFajlovi[trenutniIndex];
+                trenutniPdf.DatumObrade = DateTime.Now;
+
+                // Dodaj u zajedničku listu samo ako već ne postoji i ako je obrađen
+                if (!pdfFajloviZajednicki.Any(p => p.OriginalPath == trenutniPdf.OriginalPath))
+                {
+                    pdfFajloviZajednicki.Add(trenutniPdf);
+                }
             }
 
-
+            // Premesti fajl u output folder
             PremestiTrenutniPdfUFolder();
 
+            // Prelazak na sledeći fajl
             PredjiNaSledeciFajl();
 
+            // Očisti UI polja
             OcistiPolja();
 
+            // Ako je kraj liste, generiši izveštaj
             if (trenutniIndex >= pdfFajlovi.Count)
             {
                 MessageBox.Show("Svi fajlovi su obrađeni!", "Gotovo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+                sviFajloviObradjeni = true;
+                
                 try
                 {
-                    // ✅ Generiši izveštaj
                     GenerisiIzvestajExcel();
 
-                    // ✅ Ako je input folder prazan, ugasi aplikaciju
                     if (Directory.GetFiles(inputFolderPath, "*.pdf").Length == 0)
                     {
                         MessageBox.Show("Ulazni folder je prazan. Aplikacija će se zatvoriti.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -496,12 +624,34 @@ namespace IndexPDF2
 
         private void btnObicnaForma_Click(object sender, EventArgs e)
         {
-            // Prikaži Form1
-            Form1 mainForm = new Form1(inputFolderPath, outputFolderPath, operatorName);
-            mainForm.Show();
+            var mainForm = Application.OpenForms.OfType<Form1>().FirstOrDefault();
+            if (mainForm != null)
+            {
+                mainForm.Show();
+                mainForm.BringToFront();
 
-            // Sakrij ili zatvori FormMenica
+                // Otvori trenutni PDF ako postoji
+                if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
+                {
+                    mainForm.OtvoriPdf(pdfFajlovi[trenutniIndex].OriginalPath);
+                }
+            }
+            else
+            {
+                mainForm = new Form1(inputFolderPath, outputFolderPath, operatorName);
+                mainForm.Show();
+
+                if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
+                {
+                    mainForm.OtvoriPdf(pdfFajlovi[trenutniIndex].OriginalPath);
+                }
+            }
+
             this.Hide();
+        }
+
+        private void FormMenica_Load(object sender, EventArgs e)
+        {
 
         }
     }
