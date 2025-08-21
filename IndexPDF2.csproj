@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Logika\**" />
+    <EmbeddedResource Remove="Logika\**" />
+    <None Remove="Logika\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="pdfium.dll" />
   </ItemGroup>
 
@@ -23,10 +29,6 @@
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />
     <PackageReference Include="PdfiumViewer.Native.x86_64.v8-xfa" Version="2018.4.8.256" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Logika\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -195,6 +195,7 @@
         //PRIKAZIVANJE PODATAKA NA FORMU
         private void PrikaziTrenutniFajl()
         {
+            OslobodiPdfViewer();
             if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count)
                 return;
 
@@ -260,19 +261,20 @@
                                                //PDF PREGLED
         private void UcitajPdfUFajlViewer(string path)
         {
-            if (pdfViewer != null)
-            {
-                pdfViewer.Dispose();
-                pdfViewer = null;
-            }
+           
+            OslobodiPdfViewer();
 
-            pdfViewer = new PdfViewer();
-            pdfViewer.Dock = DockStyle.Fill;
-            pdfViewer.Document = PdfiumViewer.PdfDocument.Load(path);
+            
+            pdfViewer = new PdfViewer
+            {
+                Dock = DockStyle.Fill,
+                Document = PdfiumViewer.PdfDocument.Load(path)
+            };
 
             splitContainer1.Panel2.Controls.Clear();
             splitContainer1.Panel2.Controls.Add(pdfViewer);
         }
+
         // POMOCNA METODA ZA PREMESTANJE FAJLA
         private void OslobodiPdfViewer()
         {
@@ -280,9 +282,10 @@
             {
                 if (pdfViewer.Document != null)
                 {
-                    pdfViewer.Document.Dispose();
+                    pdfViewer.Document.Dispose(); // zatvori fajl
                     pdfViewer.Document = null;
                 }
+
                 pdfViewer.Dispose();
                 pdfViewer = null;
             }
@@ -311,8 +314,6 @@
             if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count)
                 return;
 
-            OslobodiPdfViewer();
-
             var trenutniPdf = pdfFajlovi[trenutniIndex];
 
             // Ako je unet novi naziv fajla, koristi njega, inače koristi originalni naziv
@@ -331,18 +332,20 @@
 
             if (File.Exists(trenutniPdf.OriginalPath))
             {
-                // Prvo oslobodi dokument i viewer
+                // prvo oslobodi dokument i viewer
                 OslobodiPdfViewer();
 
-                // Sačekaj trenutak da se fajl potpuno oslobodi (nekad je potrebno)
+                // dodatno forsiraj GC da se zatvori handle
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
+                // sada tek pokušaj move
                 File.Move(trenutniPdf.OriginalPath, novaPutanja);
+
                 trenutniPdf.OriginalPath = novaPutanja;
             }
         }
-       
+
         //DODAVANJE Reda u izvestaj
         private void GenerisiIzvestajExcel()
         {
