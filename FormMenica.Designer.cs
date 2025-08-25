@@ -58,7 +58,6 @@
             button2 = new Button();
             btn_Izvestaj = new Button();
             btnSacuvaj = new Button();
-            button3 = new Button();
             tableLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             SuspendLayout();
@@ -108,7 +107,6 @@
             flowLayoutPanel1.Controls.Add(button2);
             flowLayoutPanel1.Controls.Add(btn_Izvestaj);
             flowLayoutPanel1.Controls.Add(btnSacuvaj);
-            flowLayoutPanel1.Controls.Add(button3);
             flowLayoutPanel1.Dock = DockStyle.Fill;
             flowLayoutPanel1.Location = new Point(3, 408);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -403,19 +401,6 @@
             btnSacuvaj.Text = "Sacuvaj izmene i predji na sledeci";
             btnSacuvaj.UseVisualStyleBackColor = false;
             btnSacuvaj.Click += btnSacuvaj_Click;
-            // 
-            // button3
-            // 
-            button3.BackColor = Color.MidnightBlue;
-            button3.Font = new Font("Segoe UI", 9F);
-            button3.ForeColor = SystemColors.ButtonHighlight;
-            button3.Location = new Point(773, 125);
-            button3.Name = "button3";
-            button3.Size = new Size(124, 55);
-            button3.TabIndex = 56;
-            button3.Text = "Obicna forma";
-            button3.UseVisualStyleBackColor = false;
-            button3.Click += btnObicnaForma_Click;
             // 
             // FormMenica
             // 

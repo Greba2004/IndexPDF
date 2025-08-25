@@ -28,6 +28,7 @@ namespace IndexPDF2
         List<InputPdfFile> pdfFajloviZajednicki;
         private Form1 mainForm;
         private bool sviFajloviObradjeni = false;
+        private string tempPdfPath;
 
         // KONSTRUKTOR
         public FormMenica(string inputFolder, string outputFolder, string operatorName, List<InputPdfFile> pdfZajednicki)
@@ -236,9 +237,20 @@ namespace IndexPDF2
                     pdfViewer.Document.Dispose();
                     pdfViewer.Document = null;
                 }
+
                 pdfViewer.Dispose();
                 pdfViewer = null;
             }
+
+            // obrisi temp fajl ako postoji
+            if (!string.IsNullOrEmpty(tempPdfPath) && File.Exists(tempPdfPath))
+            {
+                try { File.Delete(tempPdfPath); } catch { /* ignorisi grešku */ }
+                tempPdfPath = null;
+            }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         // --- ČUVANJE I PREMESTANJE ---
@@ -265,44 +277,58 @@ namespace IndexPDF2
 
         private void PremestiTrenutniPdfUFolder()
         {
-            if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count) return;
+            OslobodiPdfViewer();
+            if (trenutniIndex < 0 || trenutniIndex >= pdfFajlovi.Count)
+                return;
 
-            SacuvajUnetePodatkeUTrenutniPdf();
+            var trenutniPdf = pdfFajlovi[trenutniIndex];
 
-            try
+            string nazivFajla = string.IsNullOrWhiteSpace(trenutniPdf.NewFileName)
+                ? Path.GetFileName(trenutniPdf.OriginalPath)
+                : trenutniPdf.NewFileName;
+
+            if (!nazivFajla.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                nazivFajla += ".pdf";
+
+            string destinationPath = Path.Combine(outputFolderPath, nazivFajla);
+
+            if (File.Exists(trenutniPdf.OriginalPath))
             {
-                OslobodiPdfViewer(); // prvo oslobodi PDFViewer
+                // prvo oslobodi viewer
+                OslobodiPdfViewer();
 
-                string nazivFajla = pdfFajlovi[trenutniIndex].NewFileName;
-                if (!nazivFajla.EndsWith(".pdf")) nazivFajla += ".pdf";
-                string novaPutanja = Path.Combine(outputFolderPath, nazivFajla);
+                // sada uradi Copy + Delete umesto Move
+                bool copySucceeded = false;
+                for (int i = 0; i < 3; i++)
+                {
+                    try
+                    {
+                        File.Copy(trenutniPdf.OriginalPath, destinationPath, overwrite: true);
+                        copySucceeded = true;
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        Thread.Sleep(200); // malo sačekaj pa probaj ponovo
+                    }
+                }
 
-                File.Move(pdfFajlovi[trenutniIndex].OriginalPath, novaPutanja);
-                pdfFajlovi[trenutniIndex].OriginalPath = novaPutanja;
+                if (copySucceeded)
+                {
+                    try
+                    {
+                        File.Delete(trenutniPdf.OriginalPath);
+                    }
+                    catch (IOException)
+                    {
+                        // ako je i dalje zaključan, ostavi ga — već imamo kopiju
+                    }
 
-                // odmah ažuriraj izveštaj
-                DodajUPDFIzvestaj(pdfFajlovi[trenutniIndex]);
-            }
-            catch (IOException ex)
-            {
-                MessageBox.Show("Ne mogu da premestim fajl: " + ex.Message);
+                    // ažuriraj putanju da pokazuje na novi fajl
+                    trenutniPdf.OriginalPath = destinationPath;
+                }
             }
         }
-        private void DodajUPDFIzvestaj(InputPdfFile pdf)
-        {
-            if (pdfFajloviZajednicki == null)
-                pdfFajloviZajednicki = new List<InputPdfFile>();
-
-            // Dodaj samo ako nije već dodat i ako je fajl validno obrađen
-            if (pdf.DatumObrade != DateTime.MinValue &&
-                !pdfFajloviZajednicki.Any(p => p.OriginalPath == pdf.OriginalPath))
-            {
-                pdfFajloviZajednicki.Add(pdf);
-            }
-        }
-
-
-
         // --- IZVEŠTAJ ---
         private void GenerisiIzvestajExcel()
         {
@@ -402,21 +428,6 @@ namespace IndexPDF2
             {
                 PrikaziTrenutniFajl();
             }
-        }
-        public void OtvoriPdf(string putanjaPdf)
-        {
-            if (string.IsNullOrEmpty(putanjaPdf) || !File.Exists(putanjaPdf))
-                return;
-
-            // Oslobodi prethodni PDFViewer
-            if (pdfViewer.Document != null)
-            {
-                pdfViewer.Document.Dispose();
-                pdfViewer.Document = null;
-            }
-
-            var doc = PdfiumViewer.PdfDocument.Load(putanjaPdf);
-            pdfViewer.Document = doc;
         }
 
         private void OcistiPolja()
@@ -550,51 +561,93 @@ namespace IndexPDF2
             if (!ValidirajDatume())
                 return;
 
-            // Sačuvaj trenutne podatke u PDF objekt
+
             SacuvajUnetePodatkeUTrenutniPdf();
 
             if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
             {
-                var trenutniPdf = pdfFajlovi[trenutniIndex];
-                trenutniPdf.DatumObrade = DateTime.Now;
-
-                // Dodaj u zajedničku listu samo ako već ne postoji i ako je obrađen
-                if (!pdfFajloviZajednicki.Any(p => p.OriginalPath == trenutniPdf.OriginalPath))
-                {
-                    pdfFajloviZajednicki.Add(trenutniPdf);
-                }
+                pdfFajlovi[trenutniIndex].DatumObrade = DateTime.Now;
+            }
+            if (!pdfFajloviZajednicki.Contains(pdfFajlovi[trenutniIndex]))
+            {
+                pdfFajloviZajednicki.Add(pdfFajlovi[trenutniIndex]);
+            }
+            var trenutniPdf = pdfFajlovi[trenutniIndex];
+            if (!pdfFajloviZajednicki.Any(p => p.OriginalPath == trenutniPdf.OriginalPath))
+            {
+                pdfFajloviZajednicki.Add(trenutniPdf);
             }
 
-            // Premesti fajl u output folder
             PremestiTrenutniPdfUFolder();
 
-            // Prelazak na sledeći fajl
             PredjiNaSledeciFajl();
 
-            // Očisti UI polja
             OcistiPolja();
 
-            // Ako je kraj liste, generiši izveštaj
             if (trenutniIndex >= pdfFajlovi.Count)
             {
                 MessageBox.Show("Svi fajlovi su obrađeni!", "Gotovo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 sviFajloviObradjeni = true;
-                
+
                 try
                 {
+                    // ✅ Generiši izveštaj
                     GenerisiIzvestajExcel();
 
-                    if (Directory.GetFiles(inputFolderPath, "*.pdf").Length == 0)
+                    // ✅ Oslobodi sve resurse unutar aplikacije
+                    OslobodiSvePdfResurse();
+
+                    // ✅ Ubij spoljne procese koji drže PDF (ako ih ima)
+                    string[] pdfProcesi = { "Acrobat", "AcroRd32", "FoxitReader", "PdfiumViewerApp" };
+                    foreach (var procName in pdfProcesi)
                     {
-                        MessageBox.Show("Ulazni folder je prazan. Aplikacija će se zatvoriti.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        Application.Exit();
+                        foreach (var proc in System.Diagnostics.Process.GetProcessesByName(procName))
+                        {
+                            try
+                            {
+                                proc.Kill();
+                                proc.WaitForExit();
+                            }
+                            catch { /* ignorisi greške */ }
+                        }
                     }
+
+                    // ✅ Poruka i gašenje aplikacije
+                    MessageBox.Show("Svi PDF resursi su oslobođeni i aplikacija će se zatvoriti.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Application.Exit();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Greška pri generisanju ili otvaranju izveštaja: " + ex.Message, "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Greška pri završavanju procesa: " + ex.Message, "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+        private void OslobodiSvePdfResurse()
+        {
+            try
+            {
+                if (pdfViewer != null)
+                {
+                    if (pdfViewer.Document != null)
+                    {
+                        pdfViewer.Document.Dispose();
+                        pdfViewer.Document = null;
+                    }
+
+                    pdfViewer.Dispose();
+                    pdfViewer = null;
+                }
+
+                if (!string.IsNullOrEmpty(tempPdfPath) && File.Exists(tempPdfPath))
+                {
+                    File.Delete(tempPdfPath);
+                    tempPdfPath = null;
+                }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+            catch { /* ignorisi grešku */ }
         }
 
         private void btnSledeci_Click(object sender, EventArgs e)
@@ -622,33 +675,7 @@ namespace IndexPDF2
 
 
 
-        private void btnObicnaForma_Click(object sender, EventArgs e)
-        {
-            var mainForm = Application.OpenForms.OfType<Form1>().FirstOrDefault();
-            if (mainForm != null)
-            {
-                mainForm.Show();
-                mainForm.BringToFront();
-
-                // Otvori trenutni PDF ako postoji
-                if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
-                {
-                    mainForm.OtvoriPdf(pdfFajlovi[trenutniIndex].OriginalPath);
-                }
-            }
-            else
-            {
-                mainForm = new Form1(inputFolderPath, outputFolderPath, operatorName);
-                mainForm.Show();
-
-                if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
-                {
-                    mainForm.OtvoriPdf(pdfFajlovi[trenutniIndex].OriginalPath);
-                }
-            }
-
-            this.Hide();
-        }
+      
 
         private void FormMenica_Load(object sender, EventArgs e)
         {
