@@ -555,7 +555,7 @@
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Greška pri završavanju procesa: " + ex.Message, "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Greska pri izlazenju", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }
@@ -583,8 +583,12 @@
                 SacuvajPodatkeUCsv();
                 return;
             }
-            pdfViewer.Document?.Dispose();
-            pdfViewer.Dispose();
+            if (pdfViewer != null)
+            {
+                pdfViewer.Document?.Dispose();
+                pdfViewer.Dispose();
+                pdfViewer = null;
+            }
 
             // Opciono: pitaj korisnika da potvrdi izlazak
             MessageBox.Show("FormClosing event aktiviran!");

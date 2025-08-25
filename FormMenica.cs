@@ -482,14 +482,9 @@ namespace IndexPDF2
         {
             try
             {
-                // Ukloni sve fajlove koji nisu u output folderu
-                var pdfZaCuvanje = pdfFajloviZajednicki
-                    .Where(p => File.Exists(p.OriginalPath) && p.OriginalPath.StartsWith(outputFolderPath))
-                    .ToList();
-
                 using (var writer = new StreamWriter(csvTempPath, false)) // overwrite
                 {
-                    foreach (var pdf in pdfZaCuvanje)
+                    foreach (var pdf in pdfFajloviZajednicki)
                     {
                         string linija = string.Join(";", new string[]
                         {
@@ -526,8 +521,8 @@ namespace IndexPDF2
                         if (DateTime.TryParse(delovi[3], out var dt))
                             pdf.DatumObrade = dt;
 
-                        // Dodaj samo ako fajl postoji u output folderu
-                        if (File.Exists(pdf.OriginalPath) && pdf.OriginalPath.StartsWith(outputFolderPath))
+                        // Dodaj bez provere foldera
+                        if (!pdfFajloviZajednicki.Any(p => p.OriginalPath == pdf.OriginalPath))
                             pdfFajloviZajednicki.Add(pdf);
                     }
                 }
