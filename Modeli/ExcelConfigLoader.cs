@@ -14,34 +14,35 @@ namespace IndexPDF2.Modeli
                 throw new FileNotFoundException("Excel konfiguracioni fajl nije pronađen!");
 
             using var workbook = new XLWorkbook(putanjaExcel);
-            var worksheet = workbook.Worksheet(1); // Prvi sheet
+            var worksheet = workbook.Worksheet(1);
 
-            // Učitaj nazive polja iz prvog reda (kolone 1-8)
+            // Učitaj prvih 8 kolona
             for (int i = 1; i <= 8; i++)
             {
-                var cellValue = worksheet.Cell(1, i).GetString().Trim();
-                config.PoljaNazivi[i - 1] = cellValue;
+                // Naziv polja (prvi red)
+                string naziv = worksheet.Cell(1, i).GetString().Trim();
+                config.PoljaNazivi[i - 1] = naziv;
 
-                var obaveznoCell = worksheet.Cell(2, i).GetString().Trim().ToUpper();
-                config.PoljaObavezna[i - 1] = obaveznoCell == "DA";
+                // Obavezno DA/NE (drugi red)
+                string obavezno = worksheet.Cell(2, i).GetString().Trim().ToUpper();
+                config.PoljaObavezna[i - 1] = obavezno == "DA";
+
+                // Lista vrednosti od trećeg reda naniže
                 List<string> vrednosti = new List<string>();
                 int red = 3;
 
                 while (true)
                 {
-                    var vrednost = worksheet.Cell(red, i).GetString().Trim();
-
-                    if (string.IsNullOrEmpty(vrednost))
+                    string val = worksheet.Cell(red, i).GetString().Trim();
+                    if (string.IsNullOrEmpty(val))
                         break;
 
-                    vrednosti.Add(vrednost);
+                    vrednosti.Add(val);
                     red++;
                 }
 
                 config.PoljaListe[i - 1] = vrednosti;
-            
-        }
-
+            }
 
             return config;
         }

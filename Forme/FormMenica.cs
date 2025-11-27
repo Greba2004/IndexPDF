@@ -622,33 +622,7 @@ namespace IndexPDF2
 
 
 
-        private void btnObicnaForma_Click(object sender, EventArgs e)
-        {
-            var mainForm = Application.OpenForms.OfType<Form1>().FirstOrDefault();
-            if (mainForm != null)
-            {
-                mainForm.Show();
-                mainForm.BringToFront();
-
-                // Otvori trenutni PDF ako postoji
-                if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
-                {
-                    mainForm.OtvoriPdf(pdfFajlovi[trenutniIndex].OriginalPath);
-                }
-            }
-            else
-            {
-                mainForm = new Form1(inputFolderPath, outputFolderPath, operatorName);
-                mainForm.Show();
-
-                if (trenutniIndex >= 0 && trenutniIndex < pdfFajlovi.Count)
-                {
-                    mainForm.OtvoriPdf(pdfFajlovi[trenutniIndex].OriginalPath);
-                }
-            }
-
-            this.Hide();
-        }
+       
 
         private void FormMenica_Load(object sender, EventArgs e)
         {

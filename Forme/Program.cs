@@ -1,4 +1,4 @@
-namespace IndexPDF2
+namespace IndexPDF2.Forme
 {
     internal static class Program
     {
