@@ -29,6 +29,9 @@ namespace IndexPDF2.Servisi
             DodajNovePdfoveUBazu();
         }
 
+        // ---------------------------------------------------------
+        // 1) DODAVANJE NOVIH PDF FAJLOVA U BAZU
+        // ---------------------------------------------------------
         private void DodajNovePdfoveUBazu()
         {
             if (!Directory.Exists(inputFolderPath)) return;
@@ -41,12 +44,21 @@ namespace IndexPDF2.Servisi
                 var postoje = dbService.UzmiSvePdfZaPutanju(pdfPath);
                 if (postoje == null || postoje.Count == 0)
                 {
-                    var pdf = new InputPdfFile(pdfPath);
+                    var pdf = new InputPdfFile(pdfPath)
+                    {
+                        IsLocked = false,
+                        LockedBy = null,
+                        LockedAt = null
+                    };
+
                     dbService.DodajPdf(pdf, operatorName);
                 }
             }
         }
 
+        // ---------------------------------------------------------
+        // 2) UCITAVANJE PDF-A U VIEWER
+        // ---------------------------------------------------------
         public void PrikaziTrenutniFajl(Panel panel)
         {
             OslobodiPdfViewer();
@@ -82,31 +94,38 @@ namespace IndexPDF2.Servisi
             trenutniPdf = null;
         }
 
+        // ---------------------------------------------------------
+        // 3) UZMI SLEDECI PDF (sa zakljucavanjem)
+        // ---------------------------------------------------------
         public bool UzmiSledeciPdf()
         {
             DodajNovePdfoveUBazu();
 
-            // prvo uzmi neobrađene
-            trenutniPdf = dbService.UzmiSledeciPdfZaObradu(operatorName);
+            // 1) Pokušaj da uzmeš neobrađen i nezaključan PDF
+            trenutniPdf = dbService.UzmiPrviSlobodanPdf();
 
-            // ako nema neobrađenih, uzmi prvi PDF iz input foldera
-            if (trenutniPdf == null && Directory.Exists(inputFolderPath))
+            if (trenutniPdf != null)
             {
-                var sviPdfovi = Directory.GetFiles(inputFolderPath, "*.pdf");
-                foreach (var pdfPath in sviPdfovi)
+                bool uspesnoZakljucao = dbService.ZakljucajPdf(trenutniPdf.Id, operatorName);
+                if (!uspesnoZakljucao)
                 {
-                    var postoje = dbService.UzmiSvePdfZaPutanju(pdfPath);
-                    if (postoje != null && postoje.Count > 0)
-                    {
-                        trenutniPdf = postoje[0];
-                        break;
-                    }
+                    // slučaj: između čitanja i zaključavanja ga je uzeo neko drugi
+                    return UzmiSledeciPdf();
                 }
+
+                trenutniPdf.IsLocked = true;
+                trenutniPdf.LockedBy = operatorName;
+                trenutniPdf.LockedAt = DateTime.Now;
+                return true;
             }
 
-            return trenutniPdf != null;
+            // 2) Ako nema nezaključanih PDF-ova
+            return false;
         }
 
+        // ---------------------------------------------------------
+        // 4) NAKON OBRADE – VRŠIMO UPDATE I PREBACIVANJE
+        // ---------------------------------------------------------
         public void PremestiTrenutniPdfUFolder(string outputFolderPath)
         {
             if (trenutniPdf == null) return;
@@ -114,8 +133,10 @@ namespace IndexPDF2.Servisi
             var oldPath = trenutniPdf.OriginalPath;
             trenutniPdf.OperatorName = operatorName;
             trenutniPdf.DatumObrade = DateTime.Now;
+            trenutniPdf.IsLocked = false;
+            trenutniPdf.LockedBy = null;
+            trenutniPdf.LockedAt = null;
 
-            // Prepiši postojeću obradu
             dbService.AzurirajPdf(trenutniPdf, operatorName);
 
             string nazivFajla = string.IsNullOrWhiteSpace(trenutniPdf.NewFileName)
@@ -139,6 +160,3 @@ namespace IndexPDF2.Servisi
         }
     }
 }
-   
-    
-

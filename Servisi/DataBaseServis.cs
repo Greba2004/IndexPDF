@@ -28,17 +28,21 @@ namespace IndexPDF2.Servisi
                 conn.Open();
 
                 string pdfTable = @"CREATE TABLE IF NOT EXISTS PdfFiles (
-                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            OriginalPath TEXT NOT NULL,
-                            NewFileName TEXT,
-                            Polje1 TEXT, Polje2 TEXT, Polje3 TEXT, Polje4 TEXT,
-                            Polje5 TEXT, Polje6 TEXT, Polje7 TEXT, Polje8 TEXT,
-                            DatumOd TEXT, DatumDo TEXT,
-                            DatumObrade DATETIME,
-                            OperatorName TEXT,
-                            Obradjen INTEGER DEFAULT 0,
-                            ZakljucanOd TEXT
-                        );";
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    OriginalPath TEXT NOT NULL,
+    NewFileName TEXT,
+    Polje1 TEXT, Polje2 TEXT, Polje3 TEXT, Polje4 TEXT,
+    Polje5 TEXT, Polje6 TEXT, Polje7 TEXT, Polje8 TEXT,
+    DatumOd TEXT, DatumDo TEXT,
+    DatumObrade DATETIME,
+    OperatorName TEXT,
+    Obradjen INTEGER DEFAULT 0,
+    
+    -- 🔒 NOVE KOLONE ZA LOCK
+    IsLocked INTEGER DEFAULT 0,
+    LockedBy TEXT,
+    LockedAt DATETIME
+);";
                 using (var cmd = new SQLiteCommand(pdfTable, conn)) cmd.ExecuteNonQuery();
 
                 string izvestajiTable = @"CREATE TABLE IF NOT EXISTS Izvestaji (
@@ -93,6 +97,7 @@ namespace IndexPDF2.Servisi
                         {
                             var pdf = MapReaderToInputPdfFile(reader);
                             lista.Add(pdf);
+                            
                         }
                     }
                 }
@@ -106,42 +111,49 @@ namespace IndexPDF2.Servisi
             using (var conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
+
                 using (var tran = conn.BeginTransaction())
                 {
+                    // 1) Zaključaj jedan slobodan pdf
                     string lockSql = @"
                 UPDATE PdfFiles
-                SET ZakljucanOd = @operator
-                WHERE Id IN (
+                SET IsLocked = 1,
+                    LockedBy = @op,
+                    LockedAt = CURRENT_TIMESTAMP
+                WHERE Id = (
                     SELECT Id FROM PdfFiles
-                    WHERE Obradjen = 0 AND (ZakljucanOd IS NULL OR ZakljucanOd = '')
+                    WHERE Obradjen = 0 AND IsLocked = 0
                     ORDER BY Id LIMIT 1
                 );
-                SELECT changes();";
+
+                SELECT changes();
+            ";
 
                     int affected;
                     using (var cmd = new SQLiteCommand(lockSql, conn, tran))
                     {
-                        cmd.Parameters.AddWithValue("@operator", operatorName);
+                        cmd.Parameters.AddWithValue("@op", operatorName);
                         affected = Convert.ToInt32(cmd.ExecuteScalar());
                     }
 
-                    // => Niko nije zakljucao (nema fajlova)
                     if (affected == 0)
                     {
                         tran.Commit();
-                        return null;
+                        return null; // nema slobodnih pdf-ova
                     }
 
-                    // U ovom trenutku SAMO ova transakcija je uspela da zaključa taj fajl!
-
+                    // 2) Uzmemo baš taj koji smo mi zaključali
                     string getSql = @"
                 SELECT * FROM PdfFiles
-                WHERE ZakljucanOd = @operator AND Obradjen = 0
-                ORDER BY Id LIMIT 1;";
+                WHERE IsLocked = 1 AND LockedBy = @op
+                ORDER BY LockedAt DESC
+                LIMIT 1;
+            ";
 
                     using (var cmd = new SQLiteCommand(getSql, conn, tran))
                     {
-                        cmd.Parameters.AddWithValue("@operator", operatorName);
+                        cmd.Parameters.AddWithValue("@op", operatorName);
+
                         using (var reader = cmd.ExecuteReader())
                         {
                             if (reader.Read())
@@ -182,7 +194,6 @@ namespace IndexPDF2.Servisi
                              SET Obradjen = 1,
                                  OperatorName = @operatorname,
                                  DatumObrade = @datum,
-                                 ZakljucanOd = NULL,
                                  Polje1 = @Polje1, Polje2 = @Polje2, Polje3 = @Polje3, Polje4 = @Polje4,
                                  Polje5 = @Polje5, Polje6 = @Polje6, Polje7 = @Polje7, Polje8 = @Polje8,
                                  DatumOd = @DatumOd, DatumDo = @DatumDo,
@@ -271,12 +282,58 @@ namespace IndexPDF2.Servisi
             pdf.Polja[8] = reader["DatumOd"]?.ToString() ?? "";
             pdf.Polja[9] = reader["DatumDo"]?.ToString() ?? "";
             pdf.OperatorName = reader["OperatorName"]?.ToString() ?? "";
+            pdf.IsLocked = reader["IsLocked"] != DBNull.Value && Convert.ToInt32(reader["IsLocked"]) == 1;
+            pdf.LockedBy = reader["LockedBy"]?.ToString();
+            if (reader["LockedAt"] != DBNull.Value && DateTime.TryParse(reader["LockedAt"].ToString(), out DateTime la))
+                pdf.LockedAt = la;
             if (reader["DatumObrade"] != DBNull.Value && !string.IsNullOrWhiteSpace(reader["DatumObrade"].ToString()))
             {
                 if (DateTime.TryParse(reader["DatumObrade"].ToString(), out DateTime dt))
                     pdf.DatumObrade = dt;
+
             }
             return pdf;
+        }
+        public InputPdfFile UzmiPrviSlobodanPdf()
+        {
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"SELECT * FROM PdfFiles WHERE Obradjen = 0 AND IsLocked = 0 ORDER BY Id LIMIT 1;";
+                using (var cmd = new SQLiteCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return MapReaderToInputPdfFile(reader);
+                    }
+                }
+            }
+            return null;
+        }
+
+        // ----------------------------
+        // 2) Zakljucaj PDF po Id
+        // ----------------------------
+        public bool ZakljucajPdf(int id, string operatorName)
+        {
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+UPDATE PdfFiles
+SET IsLocked = 1,
+    LockedBy = @OperatorName,
+    LockedAt = CURRENT_TIMESTAMP
+WHERE Id = @Id AND IsLocked = 0;";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    cmd.Parameters.AddWithValue("@OperatorName", operatorName ?? "");
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
         }
         public void AzurirajPdf(InputPdfFile pdf, string operatorName)
         {
@@ -299,8 +356,7 @@ namespace IndexPDF2.Servisi
                 NewFileName = @NewFileName,
                 DatumObrade = @DatumObrade,
                 OperatorName = @OperatorName,
-                Obradjen = 1,
-                ZakljucanOd = NULL
+                Obradjen = 1
             WHERE Id = @Id;";
 
                 string queryByPath = @"
