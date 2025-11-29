@@ -1,6 +1,6 @@
 ﻿using IndexPDF2.Modeli;
 using IndexPDF2.Servisi;
-using PdfiumViewer;
+using Syncfusion.Windows.Forms.PdfViewer;
 using System;
 using System.Drawing;
 using System.IO;

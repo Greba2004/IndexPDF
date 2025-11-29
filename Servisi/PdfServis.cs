@@ -1,5 +1,5 @@
 ﻿using IndexPDF2.Modeli;
-using PdfiumViewer;
+using Syncfusion.Windows.Forms.PdfViewer;
 using System;
 using System.IO;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace IndexPDF2.Servisi
 {
     public class PdfServis
     {
-        private PdfViewer pdfViewer;
+        private PdfViewerControl pdfViewer;
         private DatabaseService dbService;
         private string operatorName;
         private InputPdfFile trenutniPdf;
@@ -18,7 +18,7 @@ namespace IndexPDF2.Servisi
 
         public string ImeOperatera => operatorName;
         public InputPdfFile TrenutniPdf => trenutniPdf;
-        public PdfViewer PdfViewerInstance => pdfViewer;
+        public PdfViewerControl PdfViewerInstance => pdfViewer;
 
         public PdfServis(DatabaseService dbService, string operatorName, string inputFolder, ConfigData configData)
         {
@@ -57,21 +57,25 @@ namespace IndexPDF2.Servisi
         }
 
         // ---------------------------------------------------------
-        // 2) UCITAVANJE PDF-A U VIEWER
+        // 2) UCITAVANJE PDF-A U VIEWER (SYNCFUSION)
         // ---------------------------------------------------------
         public void PrikaziTrenutniFajl(Panel panel)
         {
             OslobodiPdfViewer();
+
             if (trenutniPdf == null) return;
 
             if (File.Exists(trenutniPdf.OriginalPath))
             {
-                var dokument = PdfDocument.Load(trenutniPdf.OriginalPath);
-                pdfViewer = new PdfViewer
+                pdfViewer = new PdfViewerControl
                 {
                     Dock = DockStyle.Fill,
-                    Document = dokument
+                    EnableContextMenu = true,
+                    IsTextSelectionEnabled = true,   // OCR sloj će biti automatski prepoznat
+                    ShowToolBar = true
                 };
+
+                pdfViewer.Load(trenutniPdf.OriginalPath);
 
                 panel.Controls.Clear();
                 panel.Controls.Add(pdfViewer);
@@ -82,7 +86,6 @@ namespace IndexPDF2.Servisi
         {
             if (pdfViewer != null)
             {
-                pdfViewer.Document?.Dispose();
                 pdfViewer.Dispose();
                 pdfViewer = null;
             }
@@ -101,7 +104,6 @@ namespace IndexPDF2.Servisi
         {
             DodajNovePdfoveUBazu();
 
-            // 1) Pokušaj da uzmeš neobrađen i nezaključan PDF
             trenutniPdf = dbService.UzmiPrviSlobodanPdf();
 
             if (trenutniPdf != null)
@@ -109,7 +111,6 @@ namespace IndexPDF2.Servisi
                 bool uspesnoZakljucao = dbService.ZakljucajPdf(trenutniPdf.Id, operatorName);
                 if (!uspesnoZakljucao)
                 {
-                    // slučaj: između čitanja i zaključavanja ga je uzeo neko drugi
                     return UzmiSledeciPdf();
                 }
 
@@ -119,12 +120,11 @@ namespace IndexPDF2.Servisi
                 return true;
             }
 
-            // 2) Ako nema nezaključanih PDF-ova
             return false;
         }
 
         // ---------------------------------------------------------
-        // 4) NAKON OBRADE – VRŠIMO UPDATE I PREBACIVANJE
+        // 4) NAKON OBRADE — UPDATE + PREMEŠTANJE
         // ---------------------------------------------------------
         public void PremestiTrenutniPdfUFolder(string outputFolderPath)
         {
